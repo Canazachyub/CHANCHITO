@@ -1,0 +1,58 @@
+/**
+ * Estilos de formulario compartidos entre las hojas modales de Gastos y
+ * Deudas (alta de movimiento, alta de deuda, registro de pago). Vive acá
+ * en vez de duplicarse en cada screens/*.css.
+ */
+
+.form-tipo {
+  display: flex;
+  gap: var(--space-2);
+  background: var(--text-04);
+  padding: 3px;
+  border-radius: var(--radius-control);
+}
+
+.form-chip-tipo {
+  flex: 1;
+  min-height: 36px;
+  border-radius: calc(var(--radius-control) - 3px);
+  font-size: var(--fs-subhead);
+  font-weight: 600;
+  color: var(--text-secondary);
+  transition: background var(--dur-fast) var(--ease-standard), color var(--dur-fast) var(--ease-standard);
+}
+
+.form-chip-tipo--activo-gasto {
+  background: var(--surface);
+  color: var(--expense);
+  box-shadow: var(--shadow-card);
+}
+
+.form-chip-tipo--activo-ingreso {
+  background: var(--surface);
+  color: var(--income);
+  box-shadow: var(--shadow-card);
+}
+
+.form-campo {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.form-select,
+.form-input {
+  min-height: var(--touch-target);
+  padding: 0 var(--space-3);
+  border-radius: var(--radius-control);
+  border: 1px solid var(--separator);
+  background: var(--surface);
+  font-size: var(--fs-body);
+}
+
+.form-acciones {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  margin-top: var(--space-2);
+}

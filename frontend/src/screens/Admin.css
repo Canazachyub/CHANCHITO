@@ -1,0 +1,153 @@
+.admin__cabecera {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.admin__esqueleto {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.admin__lista {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.admin__fila {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.admin__avatar {
+  flex-shrink: 0;
+  width: 44px;
+  height: 44px;
+  border-radius: var(--radius-pill);
+  background: var(--accent-12);
+  color: var(--accent);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: var(--fs-subhead);
+  font-weight: 700;
+}
+
+.admin__info {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.admin__etiqueta-rol {
+  font-size: var(--fs-caption);
+  font-weight: 600;
+  color: var(--accent);
+  background: var(--accent-12);
+  padding: 1px var(--space-2);
+  border-radius: var(--radius-pill);
+  margin-left: var(--space-1);
+  vertical-align: middle;
+}
+
+.admin__badges {
+  display: flex;
+  gap: var(--space-2);
+  margin-top: 2px;
+  flex-wrap: wrap;
+}
+
+.admin__badge {
+  font-size: var(--fs-caption);
+  line-height: var(--lh-caption);
+  font-weight: 600;
+  padding: 1px var(--space-2);
+  border-radius: var(--radius-pill);
+}
+
+.admin__badge--activo {
+  background: var(--income-12);
+  color: var(--income);
+}
+
+.admin__badge--inactivo {
+  background: var(--text-08);
+  color: var(--text-secondary);
+}
+
+.admin__badge--telegram {
+  background: var(--accent-12);
+  color: var(--accent);
+}
+
+.admin__error {
+  color: var(--expense);
+}
+
+/* ---------------------------------------------------------------------- */
+/* Obligaciones mensuales (CONTRACT § 4-ter)                               */
+/* ---------------------------------------------------------------------- */
+
+.admin__obligaciones {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.admin__obligaciones-cabecera {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+}
+
+.admin__lista-obligaciones {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.admin__obligacion {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--space-3);
+  padding: var(--space-3);
+  border-radius: var(--radius-control);
+  background: var(--text-04);
+}
+
+.admin__obligacion--inactiva {
+  opacity: 0.55;
+}
+
+.admin__obligacion-info {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.admin__obligacion-acciones {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: var(--space-2);
+  flex-shrink: 0;
+}
+
+.admin__obligacion-botones {
+  display: flex;
+  gap: var(--space-2);
+}
+
+.admin__badge--pendiente {
+  background: var(--text-08);
+  color: var(--text-secondary);
+}

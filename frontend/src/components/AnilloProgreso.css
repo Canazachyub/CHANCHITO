@@ -1,0 +1,30 @@
+.anillo-progreso {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.anillo-progreso__pista {
+  stroke: var(--text-08);
+}
+
+.anillo-progreso__valor {
+  transition: stroke-dashoffset var(--dur-slow) var(--ease-standard);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .anillo-progreso__valor {
+    transition: none;
+  }
+}
+
+.anillo-progreso__contenido {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+}

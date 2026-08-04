@@ -1,0 +1,380 @@
+/**
+ * Sistema de diseño de Chanchito — tokens + reset + utilidades globales.
+ * Único punto de entrada CSS (importado desde main.tsx). Todo lo demás se
+ * importa en cascada desde aquí para que main.tsx no tenga que tocarse.
+ *
+ * Paleta: SOLO --bg, --text, --accent, --expense, --income, más los
+ * derivados permitidos por el contrato (--surface, --text-secondary,
+ * --separator) y variantes de opacidad de esos mismos tokens. Ningún otro
+ * color entra a este archivo. Los colores de --color-categoria vienen de
+ * datos (Categoria.color en Sheets), no del sistema de diseño: son
+ * contenido, igual que el color de un evento en Calendar o una etiqueta en
+ * Salud — no cuentan como "colores nuevos" del sistema.
+ */
+
+:root {
+  /* ---- Color: roles base (light) ---- */
+  --bg: #F5F5F7;
+  --surface: #FFFFFF;
+  --text: #1D1D1F;
+  --text-secondary: #86868B;
+  --accent: #0A84FF;
+  --expense: #FF453A;
+  --income: #30D158;
+  --separator: rgba(60, 60, 67, 0.18);
+
+  /* ---- Color: variantes de opacidad de los tokens de arriba ---- */
+  --accent-08: rgba(10, 132, 255, 0.08);
+  --accent-12: rgba(10, 132, 255, 0.12);
+  --accent-18: rgba(10, 132, 255, 0.18);
+  --expense-08: rgba(255, 69, 58, 0.08);
+  --expense-12: rgba(255, 69, 58, 0.12);
+  --expense-18: rgba(255, 69, 58, 0.18);
+  --income-08: rgba(48, 209, 88, 0.08);
+  --income-12: rgba(48, 209, 88, 0.12);
+  --income-18: rgba(48, 209, 88, 0.18);
+  --text-08: rgba(29, 29, 31, 0.08);
+  --text-04: rgba(29, 29, 31, 0.04);
+  --surface-translucent: rgba(255, 255, 255, 0.72);
+
+  /* ---- Tipografía ---- */
+  --font-family: system-ui, -apple-system, 'Segoe UI', Inter, sans-serif;
+
+  --fs-large-title: 34px;
+  --lh-large-title: 41px;
+  --fs-title-1: 28px;
+  --lh-title-1: 34px;
+  --fs-title-2: 22px;
+  --lh-title-2: 28px;
+  --fs-title-3: 20px;
+  --lh-title-3: 25px;
+  --fs-headline: 17px;
+  --lh-headline: 22px;
+  --fs-body: 17px;
+  --lh-body: 22px;
+  --fs-callout: 16px;
+  --lh-callout: 21px;
+  --fs-subhead: 15px;
+  --lh-subhead: 20px;
+  --fs-footnote: 13px;
+  --lh-footnote: 18px;
+  --fs-caption: 12px;
+  --lh-caption: 16px;
+  --fs-caption-2: 11px;
+  --lh-caption-2: 13px;
+
+  /* ---- Espaciado ---- */
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 20px;
+  --space-6: 24px;
+  --space-7: 32px;
+  --space-8: 40px;
+
+  /* ---- Forma ---- */
+  --radius-card: 18px;
+  --radius-control: 12px;
+  --radius-pill: 999px;
+
+  /* ---- Sombra (muy suave, doble capa) ---- */
+  --shadow-card: 0 1px 2px rgba(0, 0, 0, 0.04), 0 8px 24px rgba(0, 0, 0, 0.06);
+  --shadow-modal: 0 -2px 24px rgba(0, 0, 0, 0.12);
+  --shadow-fab: 0 4px 16px rgba(10, 132, 255, 0.35);
+
+  /* ---- Movimiento ---- */
+  --ease-standard: cubic-bezier(0.4, 0, 0.2, 1);
+  --dur-fast: 150ms;
+  --dur-medium: 300ms;
+  --dur-slow: 420ms;
+
+  /* ---- Layout ---- */
+  --tab-bar-height: 56px;
+  --touch-target: 44px;
+  --safe-bottom: env(safe-area-inset-bottom, 0px);
+  --safe-top: env(safe-area-inset-top, 0px);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #000000;
+    --surface: #1C1C1E;
+    --text: #FFFFFF;
+    --text-secondary: #98989D;
+    --separator: rgba(84, 84, 88, 0.65);
+
+    --accent-08: rgba(10, 132, 255, 0.14);
+    --accent-12: rgba(10, 132, 255, 0.2);
+    --accent-18: rgba(10, 132, 255, 0.28);
+    --expense-08: rgba(255, 69, 58, 0.14);
+    --expense-12: rgba(255, 69, 58, 0.2);
+    --expense-18: rgba(255, 69, 58, 0.28);
+    --income-08: rgba(48, 209, 88, 0.14);
+    --income-12: rgba(48, 209, 88, 0.2);
+    --income-18: rgba(48, 209, 88, 0.28);
+    --text-08: rgba(255, 255, 255, 0.1);
+    --text-04: rgba(255, 255, 255, 0.05);
+    --surface-translucent: rgba(28, 28, 30, 0.72);
+
+    --shadow-card: 0 1px 2px rgba(0, 0, 0, 0.3), 0 8px 24px rgba(0, 0, 0, 0.4);
+    --shadow-modal: 0 -2px 24px rgba(0, 0, 0, 0.5);
+  }
+}
+
+/* ---------------------------------------------------------------------- */
+/* Reset                                                                   */
+/* ---------------------------------------------------------------------- */
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font-family);
+  font-size: var(--fs-body);
+  line-height: var(--lh-body);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  overscroll-behavior-y: none;
+}
+
+button,
+input,
+select,
+textarea {
+  font-family: inherit;
+  color: inherit;
+}
+
+button {
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+}
+
+ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+h1,
+h2,
+h3,
+p {
+  margin: 0;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+/* Foco visible con el color de acento, nunca solo por hover. */
+:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+/* ---------------------------------------------------------------------- */
+/* Layout raíz — .app-scroll lo usa App.tsx (fijo, no se toca)            */
+/* ---------------------------------------------------------------------- */
+
+.app-scroll {
+  min-height: 100%;
+  overflow-y: auto;
+  padding: var(--space-4);
+  padding-top: calc(var(--space-5) + var(--safe-top));
+  /* deja espacio para la tab bar fija + el notch inferior */
+  padding-bottom: calc(var(--tab-bar-height) + var(--safe-bottom) + var(--space-7));
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+/* ---------------------------------------------------------------------- */
+/* Utilidades tipográficas — usar siempre estas clases, nunca font-size    */
+/* suelto.                                                                 */
+/* ---------------------------------------------------------------------- */
+
+.u-large-title {
+  font-size: var(--fs-large-title);
+  line-height: var(--lh-large-title);
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+
+.u-title-1 {
+  font-size: var(--fs-title-1);
+  line-height: var(--lh-title-1);
+  font-weight: 700;
+  letter-spacing: -0.01em;
+}
+
+.u-title-2 {
+  font-size: var(--fs-title-2);
+  line-height: var(--lh-title-2);
+  font-weight: 700;
+}
+
+.u-title-3 {
+  font-size: var(--fs-title-3);
+  line-height: var(--lh-title-3);
+  font-weight: 600;
+}
+
+.u-headline {
+  font-size: var(--fs-headline);
+  line-height: var(--lh-headline);
+  font-weight: 600;
+}
+
+.u-body {
+  font-size: var(--fs-body);
+  line-height: var(--lh-body);
+  font-weight: 400;
+}
+
+.u-callout {
+  font-size: var(--fs-callout);
+  line-height: var(--lh-callout);
+  font-weight: 400;
+}
+
+.u-subhead {
+  font-size: var(--fs-subhead);
+  line-height: var(--lh-subhead);
+  font-weight: 400;
+  color: var(--text-secondary);
+}
+
+.u-footnote {
+  font-size: var(--fs-footnote);
+  line-height: var(--lh-footnote);
+  font-weight: 400;
+  color: var(--text-secondary);
+}
+
+.u-caption {
+  font-size: var(--fs-caption);
+  line-height: var(--lh-caption);
+  font-weight: 500;
+  color: var(--text-secondary);
+}
+
+/* Todo monto pasa por esta clase: columnas de números que no bailan. */
+.u-num {
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: 'tnum' 1;
+}
+
+.u-amount-lg {
+  font-size: var(--fs-large-title);
+  line-height: var(--lh-large-title);
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: 'tnum' 1;
+}
+
+.u-amount {
+  font-size: var(--fs-headline);
+  line-height: var(--lh-headline);
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: 'tnum' 1;
+}
+
+/* Monto destacado de tamaño intermedio: tarjetas de deuda, totales de fila. */
+.u-amount-md {
+  font-size: var(--fs-title-2);
+  line-height: var(--lh-title-2);
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: 'tnum' 1;
+}
+
+.u-income {
+  color: var(--income);
+}
+
+.u-expense {
+  color: var(--expense);
+}
+
+/* ---------------------------------------------------------------------- */
+/* Tarjeta — patrón base para casi toda superficie elevada.                */
+/* ---------------------------------------------------------------------- */
+
+.tarjeta {
+  background: var(--surface);
+  border-radius: var(--radius-card);
+  box-shadow: var(--shadow-card);
+  padding: var(--space-5);
+}
+
+/* Vidrio esmerilado — reservado EXCLUSIVAMENTE para la tarjeta hero de
+   Resumen. Si aparece en un segundo lugar, deja de ser especial. */
+.u-vidrio {
+  background: var(--surface-translucent);
+  backdrop-filter: blur(20px) saturate(180%);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+}
+
+/* ---------------------------------------------------------------------- */
+/* Estado vacío / carga — para no dejar nunca una pantalla en blanco.      */
+/* ---------------------------------------------------------------------- */
+
+.u-estado-vacio {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  text-align: center;
+  padding: var(--space-8) var(--space-5);
+  color: var(--text-secondary);
+}
+
+.u-estado-vacio__icono {
+  font-size: 40px;
+  line-height: 1;
+  margin-bottom: var(--space-2);
+}
+
+/* Skeleton simple para carga (hooks devuelven undefined). */
+@keyframes u-pulso {
+  0%,
+  100% {
+    opacity: 0.5;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
+.u-skeleton {
+  border-radius: var(--radius-control);
+  background: var(--text-08);
+  animation: u-pulso 1.1s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .u-skeleton {
+    animation: none;
+  }
+}

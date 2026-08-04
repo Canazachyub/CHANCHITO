@@ -1,0 +1,139 @@
+.resumen__selector-mes {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-5);
+}
+
+.resumen__flecha {
+  width: var(--touch-target);
+  height: var(--touch-target);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--radius-pill);
+  color: var(--accent);
+  transition: opacity var(--dur-fast) var(--ease-standard);
+}
+
+.resumen__flecha:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+}
+
+.resumen__mes-actual {
+  min-width: 120px;
+  text-align: center;
+  text-transform: capitalize;
+}
+
+.resumen__categorias-esqueleto {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.resumen__lista-categorias {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  margin-top: var(--space-3);
+}
+
+.resumen__fila-categoria {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.resumen__categoria-info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.resumen__grafico {
+  margin-top: var(--space-3);
+}
+
+.resumen__leyenda-grafico {
+  display: flex;
+  justify-content: center;
+  gap: var(--space-5);
+  margin-top: var(--space-2);
+}
+
+.resumen__leyenda-item {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  font-size: var(--fs-footnote);
+  line-height: var(--lh-footnote);
+  color: var(--text-secondary);
+}
+
+.resumen__punto {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  display: inline-block;
+}
+
+.resumen__punto--ingreso {
+  background: var(--income);
+}
+
+.resumen__punto--gasto {
+  background: var(--expense);
+}
+
+/* ---------------------------------------------------------------------- */
+/* Anillos agrupados (Telcom, ~20 categorías — CONTRACT § 6-bis)           */
+/* ---------------------------------------------------------------------- */
+
+.resumen__grupo {
+  display: flex;
+  flex-direction: column;
+}
+
+.resumen__fila-grupo {
+  width: 100%;
+  text-align: left;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.resumen__fila-grupo:active {
+  opacity: 0.7;
+}
+
+.resumen__chevron {
+  flex-shrink: 0;
+  color: var(--text-secondary);
+  transition: transform var(--dur-fast) var(--ease-standard);
+}
+
+.resumen__chevron--abierto {
+  transform: rotate(180deg);
+}
+
+.resumen__subcategorias {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  margin-top: var(--space-3);
+  padding-left: var(--space-6);
+  border-left: 2px solid var(--text-08);
+}
+
+.resumen__fila-categoria--sub {
+  gap: var(--space-2);
+}
+
+.resumen__icono-chico {
+  font-size: var(--fs-caption);
+}
+
+.resumen__nombre-sub {
+  color: var(--text);
+}

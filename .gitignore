@@ -1,0 +1,23 @@
+# Dependencias
+node_modules/
+
+# Builds
+dist/
+build/
+
+# Variables de entorno y secretos — nunca se suben
+.env
+.env.*
+!.env.example
+
+# Config real de clasp — apunta a un scriptId concreto y es específica de cada máquina/usuario.
+# Se versiona .clasp.json.example en docs/ si hace falta, nunca el real.
+.clasp.json
+
+# Cobertura de Jest
+coverage/
+
+# Sistema operativo / editores
+.DS_Store
+Thumbs.db
+*.swp

@@ -1,0 +1,94 @@
+.boton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  min-height: var(--touch-target);
+  padding: 0 var(--space-5);
+  border-radius: var(--radius-control);
+  font-size: var(--fs-headline);
+  line-height: var(--lh-headline);
+  font-weight: 600;
+  transition: transform var(--dur-fast) var(--ease-standard),
+    opacity var(--dur-fast) var(--ease-standard),
+    background var(--dur-fast) var(--ease-standard);
+  -webkit-tap-highlight-color: transparent;
+}
+
+.boton:active {
+  transform: scale(0.97);
+}
+
+.boton:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.boton--bloque {
+  width: 100%;
+}
+
+.boton--chico {
+  min-height: 36px;
+  padding: 0 var(--space-4);
+  font-size: var(--fs-subhead);
+  line-height: var(--lh-subhead);
+}
+
+.boton--primario {
+  background: var(--accent);
+  color: var(--surface);
+}
+
+.boton--secundario {
+  background: var(--accent-12);
+  color: var(--accent);
+}
+
+.boton--peligro {
+  background: var(--expense-12);
+  color: var(--expense);
+}
+
+.boton--fantasma {
+  background: transparent;
+  color: var(--accent);
+}
+
+.boton-icono {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--touch-target);
+  height: var(--touch-target);
+  border-radius: var(--radius-pill);
+  flex-shrink: 0;
+  transition: background var(--dur-fast) var(--ease-standard), transform var(--dur-fast) var(--ease-standard);
+  -webkit-tap-highlight-color: transparent;
+}
+
+.boton-icono:active {
+  transform: scale(0.94);
+}
+
+.boton-icono--fantasma {
+  background: transparent;
+  color: var(--text);
+}
+
+.boton-icono--secundario {
+  background: var(--text-04);
+  color: var(--text);
+}
+
+.boton-icono--peligro {
+  background: transparent;
+  color: var(--expense);
+}
+
+.boton-icono--primario {
+  background: var(--accent);
+  color: var(--surface);
+  box-shadow: var(--shadow-fab);
+}

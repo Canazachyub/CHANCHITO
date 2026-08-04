@@ -1,0 +1,15 @@
+{
+  "name": "chanchito-v2",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Chanchito v2 — billetera compartida. Tests Jest de la lógica pura de /backend/lib_*.js.",
+  "scripts": {
+    "test": "jest",
+    "test:watch": "jest --watch",
+    "test:coverage": "jest --coverage",
+    "bundle": "node scripts/bundle.js"
+  },
+  "devDependencies": {
+    "jest": "^29.7.0"
+  }
+}

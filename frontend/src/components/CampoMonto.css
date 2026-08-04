@@ -1,0 +1,57 @@
+.campo-monto {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.campo-monto__etiqueta {
+  padding: 0 var(--space-1);
+}
+
+.campo-monto__caja {
+  display: flex;
+  align-items: baseline;
+  justify-content: center;
+  gap: var(--space-2);
+  padding: var(--space-5) var(--space-4);
+  background: var(--text-04);
+  border-radius: var(--radius-control);
+  border: 1px solid transparent;
+}
+
+.campo-monto__caja:focus-within {
+  border-color: var(--accent);
+  background: var(--accent-08);
+}
+
+.campo-monto__simbolo {
+  font-size: var(--fs-title-2);
+  font-weight: 600;
+  color: var(--text-secondary);
+}
+
+.campo-monto__input {
+  border: none;
+  background: transparent;
+  outline: none;
+  width: 100%;
+  max-width: 220px;
+  text-align: center;
+  font-size: var(--fs-large-title);
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  color: var(--text);
+}
+
+.campo-monto--ingreso .campo-monto__input {
+  color: var(--income);
+}
+
+.campo-monto--gasto .campo-monto__input {
+  color: var(--expense);
+}
+
+.campo-monto__error {
+  color: var(--expense);
+  padding: 0 var(--space-1);
+}

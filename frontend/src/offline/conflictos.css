@@ -1,0 +1,139 @@
+/*
+ * Estilos de la pantalla de conflictos (CONTRACT § 6, sección "Sistema de diseño").
+ * Solo los tokens definidos ahí y variantes con opacidad de esos mismos tokens — nada más.
+ */
+
+.conflictos {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 12px 16px 0;
+}
+
+.conflicto-tarjeta {
+  background: var(--surface);
+  border-radius: 16px;
+  padding: 16px;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.06);
+}
+
+.conflicto-titulo {
+  margin: 0 0 4px;
+  font-weight: 600;
+  color: var(--text);
+}
+
+.conflicto-subtitulo {
+  margin: 0 0 12px;
+  font-size: 0.875rem;
+  color: var(--text-secondary);
+}
+
+.conflicto-error {
+  margin: 0 0 12px;
+  font-size: 0.875rem;
+  color: var(--expense);
+}
+
+.conflicto-comparacion {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.conflicto-columna {
+  min-width: 0;
+  border: 1px solid var(--separator);
+  border-radius: 12px;
+  padding: 10px;
+}
+
+.conflicto-columna-titulo {
+  margin: 0 0 8px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+  color: var(--text-secondary);
+}
+
+.conflicto-campo {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 4px 0;
+  font-size: 0.875rem;
+  border-radius: 6px;
+}
+
+.conflicto-campo--difiere {
+  background: rgba(255, 69, 58, 0.12); /* variante de opacidad de --expense: resalta lo que cambió */
+  padding-left: 6px;
+  padding-right: 6px;
+  margin: 0 -6px;
+}
+
+.conflicto-campo-nombre {
+  color: var(--text-secondary);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.conflicto-campo-valor {
+  color: var(--text);
+  text-align: right;
+  overflow-wrap: anywhere;
+}
+
+.conflicto-campo-valor--monto {
+  font-variant-numeric: tabular-nums;
+}
+
+.conflicto-acciones {
+  display: flex;
+  gap: 8px;
+}
+
+.conflicto-boton {
+  flex: 1;
+  border: none;
+  border-radius: 12px;
+  padding: 10px 12px;
+  font-size: 0.9375rem;
+  font-weight: 600;
+  cursor: pointer;
+  font-family: inherit;
+}
+
+.conflicto-boton:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+.conflicto-boton--mia {
+  background: var(--accent);
+  color: var(--surface);
+}
+
+.conflicto-boton--servidor {
+  background: rgba(10, 132, 255, 0.12); /* variante de opacidad de --accent */
+  color: var(--accent);
+}
+
+.conflicto-boton--corregir {
+  background: var(--accent);
+  color: var(--surface);
+}
+
+.conflicto-boton--descartar {
+  background: rgba(255, 69, 58, 0.12); /* variante de opacidad de --expense */
+  color: var(--expense);
+}
+
+@media (prefers-color-scheme: dark) {
+  .conflicto-tarjeta {
+    box-shadow: none;
+  }
+}

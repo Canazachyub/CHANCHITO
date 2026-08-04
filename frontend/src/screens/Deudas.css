@@ -1,0 +1,134 @@
+.deudas__cabecera {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.deudas__esqueleto {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.deudas__lista {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.deudas__tarjeta {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  border: 1px solid transparent;
+}
+
+.deudas__tarjeta--urgente {
+  border-color: var(--expense-18);
+  background: var(--expense-08);
+}
+
+.deudas__fila-superior {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--space-2);
+}
+
+.deudas__badge {
+  flex-shrink: 0;
+  padding: var(--space-1) var(--space-2);
+  border-radius: var(--radius-pill);
+  font-size: var(--fs-caption);
+  line-height: var(--lh-caption);
+  font-weight: 600;
+}
+
+.deudas__badge--pendiente {
+  background: var(--text-08);
+  color: var(--text-secondary);
+}
+
+.deudas__badge--urgente {
+  background: var(--expense-12);
+  color: var(--expense);
+}
+
+.deudas__badge--vencida {
+  background: var(--expense);
+  color: var(--surface);
+}
+
+.deudas__badge--pagada {
+  background: var(--income-12);
+  color: var(--income);
+}
+
+.deudas__fila-inferior {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: var(--space-3);
+}
+
+/* ---------------------------------------------------------------------- */
+/* Solicitudes de dinero (CONTRACT § 4-bis) — segunda sección de Deudas.   */
+/* ---------------------------------------------------------------------- */
+
+.deudas__solicitudes {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.deudas__solicitudes-cabecera {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+}
+
+.deudas__solicitudes-grupo {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.deudas__lista-solicitudes {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.deudas__solicitud {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--space-2) var(--space-3);
+  padding: var(--space-3);
+  border-radius: var(--radius-control);
+  background: var(--text-04);
+}
+
+.deudas__solicitud-info {
+  flex: 1;
+  min-width: 140px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.deudas__solicitud-monto {
+  flex-shrink: 0;
+}
+
+.deudas__solicitud-acciones {
+  display: flex;
+  gap: var(--space-2);
+  flex-basis: 100%;
+  justify-content: flex-end;
+}
+
+.deudas__error {
+  color: var(--expense);
+}
