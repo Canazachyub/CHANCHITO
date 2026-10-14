@@ -16,6 +16,30 @@ Se **reutiliza corrigiéndolo**, no se reescribe desde cero.
    (GIS) en el frontend; el backend valida el `id_token` contra
    `https://oauth2.googleapis.com/tokeninfo?id_token=...` vía `UrlFetchApp`.
    No se guarda ninguna contraseña ni hash en Sheets.
+1-bis. **Usuario y contraseña propios (2026-10-14, decisión del propietario).**
+   - Se suman a Google Sign-In, que queda como opción: el equipo (Darwin, Willy, Jael, Yubert)
+     entra con usuario y contraseña desde la app.
+   - En `Usuarios` se agregan al final: `usuario, password_hash, password_salt, password_iter,
+     debe_cambiar_password, password_actualizado`.
+   - **La contraseña nunca se guarda.** Solo se guarda el hash, que es SHA-256 iterado 5000
+     veces sobre `hash + sal + contraseña`, con una sal aleatoria por usuario
+     (`backend/lib_password.js`, con tests).
+   - `password_hash`, `password_salt` y `password_iter` **jamás salen del servidor**: todo
+     usuario devuelto pasa por `usuarioPublico()`. Eso cubre `login`, `getUsuario`,
+     `getUsuarios`, `actualizarUsuario` y `cambios.usuarios` de `sincronizar`.
+   - **Alta:** el propietario crea a la persona con `usuario`, y el servidor genera una
+     contraseña temporal de 12 caracteres sin ambiguos que devuelve **una sola vez**. Al
+     entrar con ella, todo request distinto de `cambiarPassword` responde
+     `DEBE_CAMBIAR_PASSWORD`.
+   - **Bloqueo:** tras 5 intentos fallidos el usuario queda bloqueado 15 minutos
+     (`CUENTA_BLOQUEADA`). El error de login es siempre genérico (`CREDENCIALES_INVALIDAS`) y
+     tarda lo mismo exista o no el usuario.
+   - **Acciones:** `loginPassword`, `cambiarPassword` (exige la actual) y `restablecerPassword`
+     (solo propietario; nueva temporal).
+   - **Política:** al menos 8 caracteres, letras y números, que no sea común y que no contenga
+     el usuario ni partes del nombre.
+   - `actualizarUsuario` pasa a lista blanca: un miembro solo edita `nombre`, `foto_perfil` y
+     `moneda_principal`; el propietario además `rol_global`, `telegram_chat_id` y `usuario`.
 2. **Alta previa obligatoria.** El login solo tiene éxito si el email que devuelve Google ya
    existe en la hoja `Usuarios` con `activo = true`. Si no existe → `{ success: false, error: 'USUARIO_NO_AUTORIZADO' }`.
    El propietario da de alta los emails desde la pantalla Administración o desde el bot.
@@ -131,15 +155,16 @@ Se conservan las hojas del legacy. **Cambios respecto de `docs/Code.legacy.gs`**
 | `MiembrosEspacio` | `id_miembro, id_espacio, id_usuario, rol, fecha_union, activo` |
 | `Cuentas` | `id_cuenta, id_espacio, nombre, tipo, saldo_inicial, moneda, color, icono, incluir_total, orden, activo, fecha_creacion` |
 | `Categorias` | `id_categoria, id_espacio, nombre, tipo, icono, color, es_sistema, grupo ⬅, orden, activo` |
-| `Transacciones` | `id_transaccion, id_espacio, id_usuario, id_cuenta, id_categoria, tipo, monto, descripcion, fecha, hora, ubicacion, notas, rev ⬅, origen ⬅, eliminado ⬅, fecha_creacion, fecha_modificacion` |
+| `Transacciones` | `id_transaccion, id_espacio, id_usuario, id_cuenta, id_categoria, tipo, monto, descripcion, fecha, hora, ubicacion, notas, rev ⬅, origen ⬅, eliminado ⬅, fecha_creacion, fecha_modificacion, id_trabajador ⬅` |
 | `Evidencias` | `id_evidencia, id_transaccion, tipo, url, nombre_archivo, tamano, fecha_subida` |
-| `Deudas` | `id_deuda, id_espacio, id_usuario, tipo, persona, monto_original, monto_pendiente, descripcion, fecha_creacion, fecha_vencimiento, estado, recordatorio, notas, rev ⬅, origen ⬅, eliminado ⬅, fecha_modificacion ⬅` |
+| `Deudas` | `id_deuda, id_espacio, id_usuario, tipo, persona, monto_original, monto_pendiente, descripcion, fecha_creacion, fecha_vencimiento, estado, recordatorio, notas, rev ⬅, origen ⬅, eliminado ⬅, fecha_modificacion ⬅, id_trabajador ⬅` |
 | `PagosDeuda` | `id_pago, id_deuda, monto, fecha, notas, id_transaccion` |
 | `Transferencias` | `id_transferencia, id_espacio, id_usuario, cuenta_origen, cuenta_destino, monto, fecha, nota` |
 | `Presupuestos` | `id_presupuesto, id_espacio, id_categoria, monto_limite, mes, anio, alerta_porcentaje, activo, rev ⬅, origen ⬅, eliminado ⬅, fecha_modificacion ⬅` |
 | `OperacionesAplicadas` ⬅ | `op_id, id_registro, rev, resultado, fecha` |
 | `SolicitudesDinero` ⬅ | `id_solicitud, id_espacio, id_solicitante, monto, motivo, id_categoria, estado, id_aprobador, fecha_solicitud, fecha_respuesta, id_transaccion, notas, eliminado, fecha_modificacion` |
-| `ObligacionesMensuales` ⬅ | `id_obligacion, id_espacio, concepto, id_categoria, id_cuenta, monto_estimado, dia_vencimiento, ultimo_periodo_generado, activo, notas, fecha_creacion, eliminado, fecha_modificacion` |
+| `ObligacionesMensuales` ⬅ | `id_obligacion, id_espacio, concepto, id_categoria, id_cuenta, monto_estimado, dia_vencimiento, ultimo_periodo_generado, activo, notas, fecha_creacion, eliminado, fecha_modificacion, id_trabajador ⬅` |
+| `Trabajadores` ⬅ | `id_trabajador, id_espacio, nombre, documento, tipo_vinculo, cargo, proyecto, sueldo_base, pension, fecha_ingreso, fecha_fin, id_usuario, activo, notas, fecha_creacion, fecha_modificacion` |
 | `GastosRecurrentes` | `id_gasto_recurrente, id_espacio, id_categoria, id_cuenta, descripcion, monto, frecuencia, dia_ejecucion, proximo_ejecucion, activo, fecha_creacion` |
 | `Etiquetas` | `id_etiqueta, id_espacio, nombre, color` |
 | `TransaccionEtiquetas` | `id, id_transaccion, id_etiqueta` |
@@ -185,7 +210,8 @@ el body de POST es JSON. Toda respuesta es JSON con esta forma:
 **Códigos de error normativos:** `TOKEN_INVALIDO`, `USUARIO_NO_AUTORIZADO`, `SESION_INVALIDA`,
 `MONTO_INVALIDO`, `CAMPO_REQUERIDO`, `FECHA_INVALIDA`, `NO_ENCONTRADO`, `SIN_PERMISO`,
 `CONFLICTO_REV`, `LOCK_TIMEOUT`, `EMAIL_DUPLICADO`, `ESPACIO_INVALIDO`, `NO_ES_MIEMBRO`,
-`SOLICITUD_YA_RESPONDIDA`, `ERROR_INTERNO`.
+`SOLICITUD_YA_RESPONDIDA`, `ERROR_INTERNO`, `CREDENCIALES_INVALIDAS`, `CUENTA_BLOQUEADA`,
+`PASSWORD_DEBIL`, `DEBE_CAMBIAR_PASSWORD`, `USUARIO_DUPLICADO`.
 
 **Alcance por espacio:** toda acción que lea o escriba datos de dominio recibe `id_espacio` y
 valida que exista y que el usuario de la sesión sea miembro activo (`NO_ES_MIEMBRO` si no).
@@ -220,7 +246,7 @@ datos lo revalida. Si expiró → `SESION_INVALIDA` y el frontend rehace el Goog
 `getTransaccion`, `getEvidencias`, `getDeudas`, `getDeuda`, `getPagosDeuda`, `getTransferencias`,
 `getPresupuestos`, `getProgresoPresupuesto`, `getGastosRecurrentes`, `getEtiquetas`,
 `getNotificaciones`, `getDashboard`, `getResumenMensual`, `getTendencia`, `getTopCategorias`,
-`getEspacios`, `getSolicitudes`, `getObligaciones`.
+`getEspacios`, `getSolicitudes`, `getObligaciones`, `getTrabajadores`.
 
 ### Acciones POST (escritura)
 
@@ -233,7 +259,8 @@ datos lo revalida. Si expiró → `SESION_INVALIDA` y el frontend rehace el Goog
 `eliminarGastoRecurrente`, `ejecutarGastoRecurrente`, `crearEtiqueta`, `eliminarEtiqueta`,
 `asignarEtiqueta`, `removerEtiqueta`, `marcarNotificacionLeida`, `marcarTodasLeidas`,
 `sincronizar`, `telegramWebhook`, `logError`, `crearSolicitud`, `responderSolicitud`,
-`crearObligacion`, `actualizarObligacion`, `eliminarObligacion`, `generarObligacionesDelMes`.
+`crearObligacion`, `actualizarObligacion`, `eliminarObligacion`, `generarObligacionesDelMes`,
+`crearTrabajador`, `actualizarTrabajador`, `darDeBajaTrabajador`.
 
 Nombres de función que implementa `backend/23_solicitudes.js` / `backend/24_obligaciones.js` y que
 el router invoca (contrato entre agentes, no renombrar): `crearSolicitud(p, u)`,
@@ -399,6 +426,53 @@ Acciones: `crearObligacion`, `getObligaciones`, `actualizarObligacion`, `elimina
 (baja lógica), `generarObligacionesDelMes` (la que llama el trigger, también invocable a mano).
 Las tres de escritura son solo para el propietario.
 
+## 4-quater. Trabajadores
+
+A quién se le paga planilla u honorarios. **No son usuarios**: la mayoría nunca entra a la app,
+y meterlos en `Usuarios` los haría aparecer en los botones del bot como "¿de quién es el gasto?".
+`id_usuario` de una transacción sigue siendo *quién registró o hizo* el gasto; `id_trabajador`
+es *a quién se le pagó*. Son dos preguntas distintas.
+
+- Por espacio. `tipo_vinculo`: `planilla` | `honorarios` (locación y recibo por honorarios se
+  tratan igual). `fecha_fin` vacía = indefinido; con fecha, la app avisa 45 días antes.
+- No sincronizable (como Obligaciones): escritura solo del propietario y con conexión. Viaja
+  completo en `cambios.trabajadores` de cada `sincronizar` para leerse sin conexión.
+- Baja lógica con `activo = false`: los pagos a alguien que se fue siguen mostrando su nombre.
+- `id_trabajador` también va en `Deudas` (adelanto por descontar = `me_deben`; planilla por
+  pagar = `debo`) y en `ObligacionesMensuales` (la deuda generada cada mes hereda el trabajador).
+- Respuestas: `crearTrabajador`/`actualizarTrabajador`/`darDeBajaTrabajador` devuelven
+  `{ trabajador }`; `getTrabajadores` devuelve `{ trabajadores }` (activos e inactivos).
+
+## 4-quinquies. Préstamos bancarios
+
+Deudas con bancos y financieras con cronograma de cuotas.
+
+- **`Prestamos`:** guarda solo la cabecera.
+  - Columnas: `id_prestamo, id_espacio, entidad, tipo (prestamo|tarjeta|leasing|otro),
+    descripcion, monto, tea, plazo, dia_pago, fecha_desembolso, id_cuenta, activo, notas,
+    fecha_creacion, fecha_modificacion`.
+  - No es sincronizable, la escribe solo el propietario y viaja en `cambios.prestamos`.
+- **Cada cuota es una `Deuda` `debo`** con `id_prestamo`, `nro_cuota`, `capital`, `interes` y
+  `otros` (seguro de desgravamen y comisiones). La crea el cliente por `sincronizar`, así que
+  funciona sin conexión, y hereda avisos de vencimiento y pagos parciales.
+- **Cronograma:**
+  - Se propone uno francés (TEM = (1+TEA)^(1/12) − 1, cuota fija; la última ajusta el
+    redondeo).
+  - **El usuario lo corrige contra el papel del banco antes de guardar**, porque el del banco
+    manda.
+  - Las cuotas ya pagadas de un préstamo anterior no se crean.
+- **Pagar una cuota** genera dos gastos, enlazados al pago con `id_transaccion`:
+  - "Intereses y comisiones bancarias" (costo).
+  - "Amortización de préstamos" (devolución de capital).
+
+  Lo pagado se aplica primero a interés y otros, como lo hace el banco.
+- **Desembolso:** si el dinero entra ahora a una cuenta, se registra como ingreso en
+  "Préstamos recibidos" para que la caja cuadre.
+- **Categorías de sistema nuevas:** Telcom las agrupa en `grupo = 'financiero'`; Familia las
+  deja sin grupo.
+- **Acciones:** `crearPrestamo` (acepta `id_prestamo` del cliente y es idempotente),
+  `actualizarPrestamo`, `getPrestamos`.
+
 ## 5. Bot de Telegram
 
 Máquina de estados por `chat_id`, guardada en `CacheService` con TTL de 15 minutos
@@ -468,6 +542,10 @@ crea `Notificacion` con `canal = 'telegram'` y manda `sendMessage` al `telegram_
 ---
 
 ## 6. Frontend
+
+> **Lo visual de esta sección (sistema de diseño, paleta, navegación) queda reemplazado por
+> `/DESIGN.md`** desde el 2026-10-14, por decisión del propietario. Lo de capa de datos e
+> interfaz entre agentes sigue vigente.
 
 ### Propiedad de archivos (para no pisarse entre agentes)
 
@@ -640,3 +718,16 @@ Ninguna de estas va al código fuente. Se cargan a mano una sola vez.
 - La lógica pura va en `lib_*.js` y **tiene** test en `/tests`.
 - Código y mensajes de usuario en español; nombres de campo en `snake_case` como el legacy.
 - Comentarios solo donde el "por qué" no sea obvio. No documentar lo que el código ya dice.
+
+## 9. Limpieza de datos de prueba (`backend/92_limpieza.js`)
+
+`limpiarDatosDePrueba({ dry_run })` es solo para el propietario. `dry_run` vale `true` por
+defecto. Desde el editor se ejecuta con `limpiezaPrueba()` y después con `limpiezaAplicar()`.
+Apaga lo que no pertenece a `ESP_FAMILIA` ni a `ESP_TELCOM`, las filas con `#NUM!` y los usuarios
+de prueba (`testclaude@test.com`). Nunca borra filas:
+
+| Qué | Cómo se apaga |
+|---|---|
+| Transacciones, Deudas, Presupuestos | `eliminado = true`, `rev + 1` y `fecha_modificacion`, para que los clientes se enteren |
+| Obligaciones y Solicitudes | `eliminado = true` |
+| Cuentas, Categorías, Gastos recurrentes, Espacios, Usuarios de prueba y membresías huérfanas | `activo = false` |
