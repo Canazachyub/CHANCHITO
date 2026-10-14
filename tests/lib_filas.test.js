@@ -149,3 +149,27 @@ describeIfExists('lib_filas.construirFilaOrdenada', () => {
     expect(r.clavesDesconocidas).toEqual([]);
   });
 });
+
+
+describe('lib_filas.normalizarValorCelda (Sheets convierte textos en fechas)', () => {
+  const { normalizarValorCelda } = require('../backend/lib_filas.js');
+
+  test('el período vuelve a yyyy-MM', () => {
+    expect(normalizarValorCelda('ultimo_periodo_generado', new Date(2026, 9, 1))).toBe('2026-10');
+  });
+  test('una fecha sin hora vuelve a yyyy-MM-dd', () => {
+    expect(normalizarValorCelda('fecha_vencimiento', new Date(2026, 10, 4))).toBe('2026-11-04');
+  });
+  test('las marcas de tiempo conservan la hora aunque sea medianoche', () => {
+    expect(normalizarValorCelda('fecha_modificacion', new Date(2026, 9, 14, 0, 0, 0))).toBe('2026-10-14 00:00:00');
+    expect(normalizarValorCelda('fecha', new Date(2026, 9, 14, 13, 14, 24))).toBe('2026-10-14 13:14:24');
+  });
+  test('la hora suelta vuelve a HH:mm:ss', () => {
+    expect(normalizarValorCelda('hora', new Date(1899, 11, 30, 17, 17, 36))).toBe('17:17:36');
+  });
+  test('lo que no es Date pasa igual', () => {
+    expect(normalizarValorCelda('monto', 63)).toBe(63);
+    expect(normalizarValorCelda('ultimo_periodo_generado', '2026-10')).toBe('2026-10');
+    expect(normalizarValorCelda('activo', true)).toBe(true);
+  });
+});

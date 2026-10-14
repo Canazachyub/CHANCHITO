@@ -20,7 +20,9 @@ function periodoActual(fecha) {
  */
 function debeGenerarPeriodo(ultimoPeriodoGenerado, periodo) {
   if (!ultimoPeriodoGenerado) return true;
-  return String(ultimoPeriodoGenerado) !== String(periodo);
+  // 'yyyy-MM' ordena bien como texto. Con "distinto" (la versión anterior), una obligación
+  // adelantada (la cuota de noviembre ya cargada a mano) generaba igual la de octubre.
+  return String(ultimoPeriodoGenerado).slice(0, 7) < String(periodo).slice(0, 7);
 }
 
 if (typeof module !== 'undefined') {

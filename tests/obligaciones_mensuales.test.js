@@ -146,6 +146,10 @@ describeIfLibObligaciones('lib_obligaciones — idempotencia por ultimo_periodo_
     expect(libObligaciones.debeGenerarPeriodo('2026-07', '2026-08')).toBe(true);
   });
 
+  test('debeGenerarPeriodo es false si la obligación ya va adelantada (cuota del mes siguiente cargada)', () => {
+    expect(libObligaciones.debeGenerarPeriodo('2026-11', '2026-10')).toBe(false);
+  });
+
   test('periodoActual extrae "yyyy-MM" de una fecha', () => {
     expect(libObligaciones.periodoActual(new Date(2026, 7, 2))).toBe('2026-08'); // agosto = mes 7 (0-idx)
     expect(libObligaciones.periodoActual('2026-08-02')).toBe('2026-08');

@@ -74,7 +74,10 @@ var ACCIONES_GET = {
   // Implementadas por backend/23_solicitudes.js y backend/24_obligaciones.js (otro agente,
   // en paralelo). El router solo delega — nombres y firmas exactos: docs/CONTRACT.md § 3.
   getSolicitudes: { auth: 'sesion', fn: function (p) { return getSolicitudes(p); }, idEspacio: function (p) { return p.id_espacio || null; } },
-  getObligaciones: { auth: 'sesion', fn: function (p) { return getObligaciones(p); }, idEspacio: function (p) { return p.id_espacio || null; } }
+  getObligaciones: { auth: 'sesion', fn: function (p) { return getObligaciones(p); }, idEspacio: function (p) { return p.id_espacio || null; } },
+
+  getTrabajadores: { auth: 'sesion', fn: function (p) { return getTrabajadores(p.id_espacio); }, idEspacio: function (p) { return p.id_espacio; } },
+  getPrestamos: { auth: 'sesion', fn: function (p) { return getPrestamos(p.id_espacio); }, idEspacio: function (p) { return p.id_espacio; } }
 };
 
 // ==================== TABLA DE ACCIONES POST ====================
@@ -84,6 +87,11 @@ var ACCIONES_GET = {
 
 var ACCIONES_POST = {
   login: { auth: 'ninguna', fn: function (p) { return login(p); } },
+  // § 0.1-bis. Igual que login: exige el token compartido pero no sesión.
+  loginPassword: { auth: 'ninguna', fn: function (p) { return loginPassword(p); } },
+  cambiarPassword: { auth: 'sesion', fn: function (p, u) { return cambiarPassword(p, u); } },
+  restablecerPassword: { auth: 'propietario', fn: function (p) { return restablecerPassword(p); } },
+  limpiarDatosDePrueba: { auth: 'propietario', fn: function (p) { return limpiarDatosDePrueba(p); } },
 
   // Reescribe y consolida toda la data histórica: token compartido + sesión de
   // propietario, como cualquier otra escritura destructiva.
@@ -157,10 +165,20 @@ var ACCIONES_POST = {
 
   crearObligacion: { auth: 'propietario', fn: function (p) { return crearObligacion(p); }, idEspacio: function (p) { return p.id_espacio; } },
   actualizarObligacion: { auth: 'propietario', fn: function (p) { return actualizarObligacion(p); }, idEspacio: function (p) { return _idEspacioDeObligacion(p.id_obligacion); } },
-  eliminarObligacion: { auth: 'propietario', fn: function (p) { return eliminarObligacion(p.id_obligacion); }, idEspacio: function (p) { return _idEspacioDeObligacion(p.id_obligacion); } },
+  eliminarObligacion: { auth: 'propietario', fn: function (p) { return eliminarObligacion(p); }, idEspacio: function (p) { return _idEspacioDeObligacion(p.id_obligacion); } },
   // No restringida a propietario en el contrato (§ 4-ter solo marca las tres de arriba); es
   // idempotente por mes y también la dispara el trigger diario directo, sin pasar por acá.
-  generarObligacionesDelMes: { auth: 'sesion', fn: function () { return generarObligacionesDelMes(); } }
+  generarObligacionesDelMes: { auth: 'sesion', fn: function () { return generarObligacionesDelMes(); } },
+
+  // backend/25_trabajadores.js (docs/CONTRACT.md § 4-quater). Escritura solo del propietario.
+  crearTrabajador: { auth: 'propietario', fn: function (p) { return crearTrabajador(p); }, idEspacio: function (p) { return p.id_espacio; } },
+  actualizarTrabajador: { auth: 'propietario', fn: function (p) { return actualizarTrabajador(p); }, idEspacio: function (p) { return idEspacioDeTrabajador(p.id_trabajador); } },
+  darDeBajaTrabajador: { auth: 'propietario', fn: function (p) { return darDeBajaTrabajador(p); }, idEspacio: function (p) { return idEspacioDeTrabajador(p.id_trabajador); } },
+
+  // backend/26_prestamos.js (docs/CONTRACT.md § 4-quinquies). Las cuotas viajan como deudas por `sincronizar`.
+  crearPrestamo: { auth: 'propietario', fn: function (p) { return crearPrestamo(p); }, idEspacio: function (p) { return p.id_espacio; } },
+  actualizarPrestamo: { auth: 'propietario', fn: function (p) { return actualizarPrestamo(p); }, idEspacio: function (p) { return idEspacioDePrestamo(p.id_prestamo); } },
+  finalizarPrestamo: { auth: 'propietario', fn: function (p) { return finalizarPrestamo(p); }, idEspacio: function (p) { return idEspacioDePrestamo(p.id_prestamo); } }
 };
 
 // ==================== ENTRADA HTTP ====================
@@ -210,6 +228,11 @@ function _manejarRequest(e, metodoHttp) {
       var guardaPropietario = requierePropietario(e);
       if (!guardaPropietario.ok) return jsonResponse(guardaPropietario.respuesta);
       usuarioSesion = guardaPropietario.usuario;
+    }
+
+    // Con contraseña temporal solo se puede cambiarla: nada de datos hasta que la cambie.
+    if (usuarioSesion && usuarioSesion.debe_cambiar_password === true && action !== 'cambiarPassword') {
+      return jsonResponse(respuestaError('DEBE_CAMBIAR_PASSWORD', 'Antes de seguir tienes que cambiar tu contraseña temporal.'));
     }
 
     // Guardia de espacio (docs/CONTRACT.md § 0.3 y § 3) — ver comentario de

@@ -70,10 +70,125 @@ function login(datos) {
     var expira = new Date(Date.now() + _TTL_SESION_SEGUNDOS * 1000);
 
     return respuestaExito({
-      usuario: usuario,
+      usuario: usuarioPublico(usuario),
       token_sesion: tokenSesion,
       expira: Utilities.formatDate(expira, Session.getScriptTimeZone(), 'yyyy-MM-dd HH:mm:ss')
     });
+  });
+}
+
+// ==================== LOGIN CON USUARIO Y CONTRASEÑA (§ 0.1-bis) ====================
+
+var _MAX_INTENTOS = 5;
+var _TTL_BLOQUEO_SEGUNDOS = 15 * 60;
+
+function _sha256Hex(texto) {
+  var bytes = Utilities.computeDigest(Utilities.DigestAlgorithm.SHA_256, texto, Utilities.Charset.UTF_8);
+  var hex = '';
+  for (var i = 0; i < bytes.length; i++) {
+    var b = (bytes[i] + 256) % 256;
+    hex += (b < 16 ? '0' : '') + b.toString(16);
+  }
+  return hex;
+}
+
+/** Sal nueva por usuario. Utilities.getUuid() es aleatorio criptográfico (v4). */
+function _nuevaSal() {
+  return (Utilities.getUuid() + Utilities.getUuid()).replace(/-/g, '');
+}
+
+function nuevaPasswordTemporal() {
+  return generarPasswordTemporal((Utilities.getUuid() + Utilities.getUuid()).replace(/-/g, ''));
+}
+
+/** Campos a escribir para fijar una contraseña. `temporal` obliga a cambiarla al entrar. */
+function camposPassword(password, temporal) {
+  var sal = _nuevaSal();
+  return {
+    password_salt: sal,
+    password_iter: PASSWORD_ITERACIONES,
+    password_hash: derivarHashPassword(password, sal, PASSWORD_ITERACIONES, _sha256Hex),
+    debe_cambiar_password: !!temporal,
+    password_actualizado: fechaHoraActual()
+  };
+}
+
+function _crearSesion(sheet, fila) {
+  var ahora = fechaHoraActual();
+  var colUltimaSesion = fila.headers.indexOf('ultima_sesion');
+  if (colUltimaSesion >= 0) sheet.getRange(fila.row, colUltimaSesion + 1).setValue(ahora);
+  var usuario = fila.datos;
+  usuario.ultima_sesion = ahora;
+
+  var tokenSesion = Utilities.getUuid();
+  CacheService.getScriptCache().put(_PREFIJO_CACHE_SESION + tokenSesion, usuario.id_usuario, _TTL_SESION_SEGUNDOS);
+  var expira = new Date(Date.now() + _TTL_SESION_SEGUNDOS * 1000);
+  return respuestaExito({
+    usuario: usuarioPublico(usuario),
+    token_sesion: tokenSesion,
+    expira: Utilities.formatDate(expira, Session.getScriptTimeZone(), 'yyyy-MM-dd HH:mm:ss')
+  });
+}
+
+/**
+ * loginPassword({ usuario, password }). Errores deliberadamente genéricos
+ * (CREDENCIALES_INVALIDAS) para no revelar si el usuario existe. Tras 5 intentos
+ * fallidos se bloquea ese usuario 15 minutos (CacheService).
+ */
+function loginPassword(datos) {
+  var nombreUsuario = normalizarUsuario(datos && datos.usuario);
+  var password = datos && datos.password;
+  if (!nombreUsuario || !password) return respuestaError('CREDENCIALES_INVALIDAS', 'Usuario o contraseña incorrectos.');
+
+  var cache = CacheService.getScriptCache();
+  var claveIntentos = 'intentos_' + nombreUsuario;
+  var intentos = parseInt(cache.get(claveIntentos), 10) || 0;
+  if (intentos >= _MAX_INTENTOS) {
+    return respuestaError('CUENTA_BLOQUEADA', 'Demasiados intentos fallidos. Espera 15 minutos o pide al administrador que restablezca tu contraseña.');
+  }
+
+  var sheet = getSheet(SHEETS.USUARIOS);
+  var usuario = getAllData(sheet).filter(function (u) {
+    return String(u.usuario || '').toLowerCase() === nombreUsuario && u.activo === true;
+  })[0];
+
+  // Con usuario inexistente igual se calcula un hash: así la respuesta tarda lo mismo y el
+  // tiempo no delata qué usuarios existen.
+  var sal = usuario && usuario.password_salt ? usuario.password_salt : 'sal-inexistente';
+  var hash = derivarHashPassword(String(password), sal, usuario ? usuario.password_iter : PASSWORD_ITERACIONES, _sha256Hex);
+  var correcto = !!(usuario && usuario.password_hash) && compararSeguro(hash, usuario.password_hash);
+
+  if (!correcto) {
+    cache.put(claveIntentos, String(intentos + 1), _TTL_BLOQUEO_SEGUNDOS);
+    return respuestaError('CREDENCIALES_INVALIDAS', 'Usuario o contraseña incorrectos.');
+  }
+  cache.remove(claveIntentos);
+
+  return withLock(function () {
+    return _crearSesion(sheet, buscarPorId(sheet, 'id_usuario', usuario.id_usuario));
+  });
+}
+
+/** cambiarPassword({ actual, nueva }, usuarioSesion). Exige la actual aunque sea temporal. */
+function cambiarPassword(datos, usuarioSesion) {
+  var sheet = getSheet(SHEETS.USUARIOS);
+  var fila = buscarPorId(sheet, 'id_usuario', usuarioSesion.id_usuario);
+  if (!fila) return respuestaError('NO_ENCONTRADO', 'Usuario no encontrado.');
+  var u = fila.datos;
+
+  if (u.password_hash) {
+    var hashActual = derivarHashPassword(String(datos.actual || ''), u.password_salt, u.password_iter, _sha256Hex);
+    if (!compararSeguro(hashActual, u.password_hash)) return respuestaError('CREDENCIALES_INVALIDAS', 'La contraseña actual no es correcta.');
+  }
+  if (String(datos.nueva || '') === String(datos.actual || '')) {
+    return respuestaError('PASSWORD_DEBIL', 'La nueva contraseña tiene que ser distinta de la actual.');
+  }
+  var v = validarPasswordNueva(datos.nueva, { usuario: u.usuario, nombre: u.nombre });
+  if (!v.valido) return respuestaError(v.error, v.detalle);
+
+  return withLock(function () {
+    escribirCampos(sheet, fila.row, fila.headers, camposPassword(String(datos.nueva), false), ['id_usuario']);
+    return respuestaExito({ usuario: usuarioPublico(buscarPorId(sheet, 'id_usuario', u.id_usuario).datos) });
   });
 }
 

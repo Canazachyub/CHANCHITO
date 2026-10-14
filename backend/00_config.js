@@ -23,19 +23,23 @@ var SHEETS = {
   TRANSACCION_ETIQUETAS: 'TransaccionEtiquetas',
   NOTIFICACIONES: 'Notificaciones',
   SOLICITUDES_DINERO: 'SolicitudesDinero',
-  OBLIGACIONES_MENSUALES: 'ObligacionesMensuales'
+  OBLIGACIONES_MENSUALES: 'ObligacionesMensuales',
+  TRABAJADORES: 'Trabajadores',
+  PRESTAMOS: 'Prestamos'
 };
 
 // Esquema de columnas exacto — docs/CONTRACT.md § 2. El orden importa.
 var ESQUEMA_COLUMNAS = {};
-ESQUEMA_COLUMNAS[SHEETS.USUARIOS] = ['id_usuario', 'email', 'nombre', 'foto_perfil', 'google_id', 'telegram_chat_id', 'rol_global', 'moneda_principal', 'fecha_registro', 'ultima_sesion', 'activo'];
+// usuario/password_*: login propio (docs/CONTRACT.md § 0.1-bis). Al final por _asegurarColumnas.
+// password_hash/salt/iter NUNCA salen del servidor: todo lo que devuelve un usuario pasa por usuarioPublico().
+ESQUEMA_COLUMNAS[SHEETS.USUARIOS] = ['id_usuario', 'email', 'nombre', 'foto_perfil', 'google_id', 'telegram_chat_id', 'rol_global', 'moneda_principal', 'fecha_registro', 'ultima_sesion', 'activo', 'usuario', 'password_hash', 'password_salt', 'password_iter', 'debe_cambiar_password', 'password_actualizado'];
 ESQUEMA_COLUMNAS[SHEETS.ESPACIOS] = ['id_espacio', 'nombre', 'descripcion', 'id_propietario', 'icono', 'color', 'fecha_creacion', 'activo'];
 ESQUEMA_COLUMNAS[SHEETS.MIEMBROS_ESPACIO] = ['id_miembro', 'id_espacio', 'id_usuario', 'rol', 'fecha_union', 'activo'];
 ESQUEMA_COLUMNAS[SHEETS.CUENTAS] = ['id_cuenta', 'id_espacio', 'nombre', 'tipo', 'saldo_inicial', 'moneda', 'color', 'icono', 'incluir_total', 'orden', 'activo', 'fecha_creacion'];
 ESQUEMA_COLUMNAS[SHEETS.CATEGORIAS] = ['id_categoria', 'id_espacio', 'nombre', 'tipo', 'icono', 'color', 'es_sistema', 'grupo', 'orden', 'activo'];
-ESQUEMA_COLUMNAS[SHEETS.TRANSACCIONES] = ['id_transaccion', 'id_espacio', 'id_usuario', 'id_cuenta', 'id_categoria', 'tipo', 'monto', 'descripcion', 'fecha', 'hora', 'ubicacion', 'notas', 'rev', 'origen', 'eliminado', 'fecha_creacion', 'fecha_modificacion'];
+ESQUEMA_COLUMNAS[SHEETS.TRANSACCIONES] = ['id_transaccion', 'id_espacio', 'id_usuario', 'id_cuenta', 'id_categoria', 'tipo', 'monto', 'descripcion', 'fecha', 'hora', 'ubicacion', 'notas', 'rev', 'origen', 'eliminado', 'fecha_creacion', 'fecha_modificacion', 'id_trabajador'];
 ESQUEMA_COLUMNAS[SHEETS.EVIDENCIAS] = ['id_evidencia', 'id_transaccion', 'tipo', 'url', 'nombre_archivo', 'tamano', 'fecha_subida'];
-ESQUEMA_COLUMNAS[SHEETS.DEUDAS] = ['id_deuda', 'id_espacio', 'id_usuario', 'tipo', 'persona', 'monto_original', 'monto_pendiente', 'descripcion', 'fecha_creacion', 'fecha_vencimiento', 'estado', 'recordatorio', 'notas', 'rev', 'origen', 'eliminado', 'fecha_modificacion'];
+ESQUEMA_COLUMNAS[SHEETS.DEUDAS] = ['id_deuda', 'id_espacio', 'id_usuario', 'tipo', 'persona', 'monto_original', 'monto_pendiente', 'descripcion', 'fecha_creacion', 'fecha_vencimiento', 'estado', 'recordatorio', 'notas', 'rev', 'origen', 'eliminado', 'fecha_modificacion', 'id_trabajador', 'id_prestamo', 'nro_cuota', 'capital', 'interes', 'otros'];
 ESQUEMA_COLUMNAS[SHEETS.PAGOS_DEUDA] = ['id_pago', 'id_deuda', 'monto', 'fecha', 'notas', 'id_transaccion'];
 ESQUEMA_COLUMNAS[SHEETS.TRANSFERENCIAS] = ['id_transferencia', 'id_espacio', 'id_usuario', 'cuenta_origen', 'cuenta_destino', 'monto', 'fecha', 'nota'];
 ESQUEMA_COLUMNAS[SHEETS.PRESUPUESTOS] = ['id_presupuesto', 'id_espacio', 'id_categoria', 'monto_limite', 'mes', 'anio', 'alerta_porcentaje', 'activo', 'rev', 'origen', 'eliminado', 'fecha_modificacion'];
@@ -49,7 +53,15 @@ ESQUEMA_COLUMNAS[SHEETS.NOTIFICACIONES] = ['id_notificacion', 'id_usuario', 'tip
 // SHEETS/ESQUEMA_COLUMNAS. No son entidades sincronizables (docs/CONTRACT.md § 2): sin rev
 // propio, no entran en ENTIDADES_SYNC ni en el lote de `sincronizar`.
 ESQUEMA_COLUMNAS[SHEETS.SOLICITUDES_DINERO] = ['id_solicitud', 'id_espacio', 'id_solicitante', 'monto', 'motivo', 'id_categoria', 'estado', 'id_aprobador', 'fecha_solicitud', 'fecha_respuesta', 'id_transaccion', 'notas', 'eliminado', 'fecha_modificacion'];
-ESQUEMA_COLUMNAS[SHEETS.OBLIGACIONES_MENSUALES] = ['id_obligacion', 'id_espacio', 'concepto', 'id_categoria', 'id_cuenta', 'monto_estimado', 'dia_vencimiento', 'ultimo_periodo_generado', 'activo', 'notas', 'fecha_creacion', 'eliminado', 'fecha_modificacion'];
+ESQUEMA_COLUMNAS[SHEETS.OBLIGACIONES_MENSUALES] = ['id_obligacion', 'id_espacio', 'concepto', 'id_categoria', 'id_cuenta', 'monto_estimado', 'dia_vencimiento', 'ultimo_periodo_generado', 'activo', 'notas', 'fecha_creacion', 'eliminado', 'fecha_modificacion', 'id_trabajador', 'id_prestamo'];
+// Trabajadores: a quién se le paga planilla u honorarios (docs/CONTRACT.md § 4-quater). No son
+// usuarios: la mayoría nunca entra a la app. `id_trabajador` en Transacciones y Deudas va al
+// final porque _asegurarColumnas (91_setup.js) agrega ahí las columnas que faltan.
+ESQUEMA_COLUMNAS[SHEETS.TRABAJADORES] = ['id_trabajador', 'id_espacio', 'nombre', 'documento', 'tipo_vinculo', 'cargo', 'proyecto', 'sueldo_base', 'pension', 'fecha_ingreso', 'fecha_fin', 'id_usuario', 'activo', 'notas', 'fecha_creacion', 'fecha_modificacion'];
+// Préstamos bancarios (docs/CONTRACT.md § 4-quinquies). Cada cuota es una Deuda con id_prestamo.
+// modalidad 'cuota_fija': no se conoce el cronograma, solo la cuota y el día; una obligación
+// mensual enlazada (id_prestamo) genera cada cuota hasta que se finaliza el préstamo.
+ESQUEMA_COLUMNAS[SHEETS.PRESTAMOS] = ['id_prestamo', 'id_espacio', 'entidad', 'tipo', 'descripcion', 'monto', 'tea', 'plazo', 'dia_pago', 'fecha_desembolso', 'id_cuenta', 'activo', 'notas', 'fecha_creacion', 'fecha_modificacion', 'modalidad', 'cuota_mensual', 'fecha_fin'];
 
 // Entidades sincronizables (control de revisiones, § 4 del contrato).
 var ENTIDADES_SYNC = {
@@ -83,12 +95,15 @@ CATEGORIAS_SISTEMA[ESP_FAMILIA_ID] = {
     { nombre: 'Salud', icono: '🏥', color: '#FF375F', grupo: '' },
     { nombre: 'Educación', icono: '📚', color: '#0A84FF', grupo: '' },
     { nombre: 'Entretenimiento', icono: '🎬', color: '#BF5AF2', grupo: '' },
-    { nombre: 'Otros gastos', icono: '📦', color: '#86868B', grupo: '' }
+    { nombre: 'Otros gastos', icono: '📦', color: '#86868B', grupo: '' },
+    { nombre: 'Intereses y comisiones bancarias', icono: '🏦', color: '#FF453A', grupo: '' },
+    { nombre: 'Amortización de préstamos', icono: '📉', color: '#8E8E93', grupo: '' }
   ],
   ingreso: [
     { nombre: 'Sueldo', icono: '💼', color: '#30D158', grupo: '' },
     { nombre: 'Ingresos extra', icono: '➕', color: '#64D2FF', grupo: '' },
-    { nombre: 'Otros ingresos', icono: '💰', color: '#98D45F', grupo: '' }
+    { nombre: 'Otros ingresos', icono: '💰', color: '#98D45F', grupo: '' },
+    { nombre: 'Préstamos recibidos', icono: '🏦', color: '#0A84FF', grupo: '' }
   ]
 };
 
@@ -117,12 +132,17 @@ CATEGORIAS_SISTEMA[ESP_TELCOM_ID] = {
     { nombre: 'Útiles de oficina', icono: '📎', color: '#64D2FF', grupo: 'activos' },
     // grupo: impuestos
     { nombre: 'Impuestos y SUNAT', icono: '🏛️', color: '#FF453A', grupo: 'impuestos' },
+    // grupo: financiero — préstamos bancarios (§ 4-quinquies). El interés es costo; la
+    // amortización es devolver capital: van separados para que el análisis no los mezcle.
+    { nombre: 'Intereses y comisiones bancarias', icono: '🏦', color: '#FF453A', grupo: 'financiero' },
+    { nombre: 'Amortización de préstamos', icono: '📉', color: '#8E8E93', grupo: 'financiero' },
     // sin grupo
     { nombre: 'Otros gastos operativos', icono: '📦', color: '#86868B', grupo: '' }
   ],
   ingreso: [
     { nombre: 'Servicios facturados', icono: '🧾', color: '#30D158', grupo: 'ingresos' },
-    { nombre: 'Otros ingresos', icono: '💰', color: '#98D45F', grupo: 'ingresos' }
+    { nombre: 'Otros ingresos', icono: '💰', color: '#98D45F', grupo: 'ingresos' },
+    { nombre: 'Préstamos recibidos', icono: '🏦', color: '#0A84FF', grupo: 'financiero' }
   ]
 };
 

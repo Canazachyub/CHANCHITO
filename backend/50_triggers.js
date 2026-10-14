@@ -86,7 +86,7 @@ function purgarOperacionesAplicadas() {
       // De abajo hacia arriba: borrar de arriba hacia abajo correría los
       // índices de fila de las que todavía faltan revisar.
       for (let i = datos.length - 1; i >= 0; i--) {
-        const fechaFila = String(datos[i][colFecha] || '');
+        const fechaFila = String(normalizarValorCelda('fecha', datos[i][colFecha]) || '');
         if (fechaFila && fechaFila < limiteStr) {
           sheet.deleteRow(2 + i);
         }

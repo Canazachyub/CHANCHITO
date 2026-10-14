@@ -56,7 +56,7 @@ function findRow(sheet, valor, columnaIndex) {
 function getFilaObjeto(sheet, row, headers) {
   var values = sheet.getRange(row, 1, 1, headers.length).getValues()[0];
   var obj = {};
-  for (var i = 0; i < headers.length; i++) obj[headers[i]] = values[i];
+  for (var i = 0; i < headers.length; i++) obj[headers[i]] = normalizarValorCelda(headers[i], values[i]);
   return obj;
 }
 
@@ -70,7 +70,8 @@ function getAllData(sheet) {
   for (var i = 1; i < data.length; i++) {
     if (data[i][0] === '' || data[i][0] === null) continue; // fila en blanco
     var obj = {};
-    for (var j = 0; j < headers.length; j++) obj[headers[j]] = data[i][j];
+    // Sheets devuelve Date donde el backend escribió texto: ver normalizarValorCelda (lib_filas.js).
+    for (var j = 0; j < headers.length; j++) obj[headers[j]] = normalizarValorCelda(headers[j], data[i][j]);
     result.push(obj);
   }
   return result;

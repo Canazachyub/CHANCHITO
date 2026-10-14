@@ -77,7 +77,9 @@ function obl_crearFila(datos) {
     notas: sanearTexto(datos.notas, 500),
     fecha_creacion: ahora,
     eliminado: false,
-    fecha_modificacion: ahora
+    fecha_modificacion: ahora,
+    // Planilla de una persona concreta (§ 4-quater): la deuda generada hereda el trabajador.
+    id_trabajador: datos.id_trabajador || ''
   };
 
   anexarFila(sheet, obj);
@@ -113,7 +115,8 @@ function crearObligacion(p) {
       id_cuenta: datos.id_cuenta,
       monto_estimado: montoV.valor,
       dia_vencimiento: dia,
-      notas: datos.notas
+      notas: datos.notas,
+      id_trabajador: datos.id_trabajador
     });
     return respuestaExito({ id_obligacion: creada.id_obligacion, obligacion: creada });
   });
@@ -172,6 +175,7 @@ function actualizarObligacion(p) {
   if (datos.id_categoria !== undefined) paraEscribir.id_categoria = datos.id_categoria;
   if (datos.id_cuenta !== undefined) paraEscribir.id_cuenta = datos.id_cuenta;
   if (datos.notas !== undefined) paraEscribir.notas = sanearTexto(datos.notas, 500);
+  if (datos.id_trabajador !== undefined) paraEscribir.id_trabajador = datos.id_trabajador || '';
   if (datos.activo !== undefined) paraEscribir.activo = datos.activo === true || datos.activo === 'true';
 
   if (datos.monto_estimado !== undefined) {
@@ -260,9 +264,18 @@ function generarObligacionesDelMes() {
 
           var fechaVencimiento = obl_fechaVencimientoDelMes(anioActual, mesActual, o.dia_vencimiento);
 
+          // Cuota de un préstamo de cuota fija: la deuda va enlazada al préstamo y numerada.
+          var nroCuota = '';
+          if (o.id_prestamo) {
+            nroCuota = getAllData(getSheet(SHEETS.DEUDAS)).filter(function (d) { return d.id_prestamo === o.id_prestamo && !d.eliminado; }).length + 1;
+          }
+
           var deuda = crearDeudaInterna({
             id_espacio: o.id_espacio,
             id_usuario: '',
+            id_trabajador: o.id_trabajador || '',
+            id_prestamo: o.id_prestamo || '',
+            nro_cuota: nroCuota,
             tipo: 'debo',
             persona: o.concepto,
             monto_original: montoV.valor,
@@ -275,7 +288,7 @@ function generarObligacionesDelMes() {
 
           var filaObligacion = buscarPorId(sheet, 'id_obligacion', o.id_obligacion);
           escribirCampos(sheet, filaObligacion.row, filaObligacion.headers, {
-            ultimo_periodo_generado: periodoDelMes,
+            ultimo_periodo_generado: "'" + periodoDelMes, // apóstrofo: texto, no fecha (normalizarValorCelda)
             fecha_modificacion: fechaHoraActual()
           }, ['id_obligacion', 'fecha_creacion']);
 

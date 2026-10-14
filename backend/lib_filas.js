@@ -44,6 +44,31 @@ function construirFilaOrdenada(headersReales, datos) {
   return { valores: valores, clavesDesconocidas: clavesDesconocidas };
 }
 
+/** Columnas que guardan fecha Y hora ('yyyy-MM-dd HH:mm:ss') aunque la hora sea 00:00:00. */
+var CAMPOS_FECHA_HORA = ['fecha_creacion', 'fecha_modificacion', 'fecha_registro', 'ultima_sesion', 'fecha_solicitud',
+  'fecha_respuesta', 'fecha_subida', 'fecha_union', 'password_actualizado'];
+
+/**
+ * normalizarValorCelda(header, valor) → el valor como lo escribió el backend.
+ *
+ * Google Sheets convierte por su cuenta los textos con forma de fecha: '2026-10' pasa a ser
+ * 1 de octubre, '2026-11-04' una fecha y '17:17:36' una hora del 30/12/1899. Al leer, getValues()
+ * devuelve objetos Date, y toda comparación de texto contra ellos falla en silencio: el
+ * generador de obligaciones creía que nunca había generado el mes, la purga nunca purgaba y
+ * el JSON viajaba al cliente con zona horaria ('2026-11-04T05:00:00.000Z').
+ * Los Date se vuelven a texto según la columna; el resto pasa igual.
+ */
+function normalizarValorCelda(header, valor) {
+  if (Object.prototype.toString.call(valor) !== '[object Date]' || isNaN(valor.getTime())) return valor;
+  var p2 = function (n) { return (n < 10 ? '0' : '') + n; };
+  var ymd = valor.getFullYear() + '-' + p2(valor.getMonth() + 1) + '-' + p2(valor.getDate());
+  var hms = p2(valor.getHours()) + ':' + p2(valor.getMinutes()) + ':' + p2(valor.getSeconds());
+  if (header === 'ultimo_periodo_generado') return ymd.slice(0, 7);
+  if (header === 'hora') return hms;
+  if (CAMPOS_FECHA_HORA.indexOf(header) !== -1) return ymd + ' ' + hms;
+  return hms === '00:00:00' ? ymd : ymd + ' ' + hms;
+}
+
 if (typeof module !== 'undefined') {
-  module.exports = { construirFilaOrdenada: construirFilaOrdenada };
+  module.exports = { construirFilaOrdenada: construirFilaOrdenada, normalizarValorCelda: normalizarValorCelda };
 }

@@ -48,7 +48,7 @@ function prepararTransaccion(datos, exigirTodos) {
     normalizado.origen = origenV.valor;
   }
 
-  ['id_espacio', 'id_usuario', 'id_cuenta', 'id_categoria', 'descripcion', 'hora', 'ubicacion', 'notas'].forEach(function (campo) {
+  ['id_espacio', 'id_usuario', 'id_cuenta', 'id_categoria', 'id_trabajador', 'descripcion', 'hora', 'ubicacion', 'notas'].forEach(function (campo) {
     if (datos[campo] !== undefined) normalizado[campo] = datos[campo];
   });
 
@@ -80,7 +80,8 @@ function crearTransaccionInterna(datosNormalizados, idForzado) {
     origen: datosNormalizados.origen || 'app',
     eliminado: false,
     fecha_creacion: ahora,
-    fecha_modificacion: ahora
+    fecha_modificacion: ahora,
+    id_trabajador: datosNormalizados.id_trabajador || ''
   };
 
   anexarFila(sheet, obj);

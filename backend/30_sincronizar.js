@@ -289,7 +289,11 @@ function _construirCambiosSync(desde, idEspacio) {
   // sincronización es despreciable en costo.
   var categorias = getAllData(getSheet(SHEETS.CATEGORIAS)).filter(function (c) { return c.activo && c.id_espacio === idEspacio; });
   var cuentas = getAllData(getSheet(SHEETS.CUENTAS)).filter(function (c) { return c.activo && c.id_espacio === idEspacio; });
-  var usuarios = getAllData(getSheet(SHEETS.USUARIOS)).filter(function (u) { return u.activo; });
+  // usuarioPublico: el hash y la sal de cada contraseña jamás viajan al teléfono de otro.
+  var usuarios = getAllData(getSheet(SHEETS.USUARIOS)).filter(function (u) { return u.activo; }).map(usuarioPublico);
+  // Activos e inactivos: los pagos a alguien que ya se fue tienen que seguir mostrando su nombre.
+  var trabajadores = getAllData(getSheet(SHEETS.TRABAJADORES)).filter(function (t) { return t.id_espacio === idEspacio; });
+  var prestamos = getAllData(getSheet(SHEETS.PRESTAMOS)).filter(function (p) { return p.id_espacio === idEspacio; });
 
   return {
     transacciones: transacciones,
@@ -297,7 +301,9 @@ function _construirCambiosSync(desde, idEspacio) {
     presupuestos: presupuestos,
     categorias: categorias,
     cuentas: cuentas,
-    usuarios: usuarios
+    usuarios: usuarios,
+    trabajadores: trabajadores,
+    prestamos: prestamos
   };
 }
 

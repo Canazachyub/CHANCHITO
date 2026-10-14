@@ -48,7 +48,29 @@ function prepararDeuda(datos, exigirTodos) {
     normalizado.origen = origenV.valor;
   }
 
-  ['id_espacio', 'id_usuario', 'persona', 'descripcion', 'recordatorio', 'notas', 'monto_pendiente'].forEach(function (campo) {
+  // monto_pendiente se puede corregir a mano (Tablero): antes pasaba sin validar a la hoja.
+  if (datos.monto_pendiente !== undefined) {
+    var pendienteV = validarMonto(datos.monto_pendiente);
+    if (!pendienteV.valido) return { valido: false, error: pendienteV.error, detalle: pendienteV.detalle };
+    normalizado.monto_pendiente = pendienteV.valor;
+  }
+
+  // Desglose de cuota de préstamo (§ 4-quinquies): números validados como cualquier monto.
+  var camposDesglose = ['capital', 'interes', 'otros'];
+  for (var k = 0; k < camposDesglose.length; k++) {
+    var campoD = camposDesglose[k];
+    if (datos[campoD] === undefined || datos[campoD] === '') continue;
+    var desgloseV = validarMonto(datos[campoD]);
+    if (!desgloseV.valido) return { valido: false, error: desgloseV.error, detalle: campoD + ': ' + desgloseV.detalle };
+    normalizado[campoD] = desgloseV.valor;
+  }
+  if (datos.nro_cuota !== undefined && datos.nro_cuota !== '') {
+    var nro = parseInt(datos.nro_cuota, 10);
+    if (isNaN(nro) || nro < 1) return { valido: false, error: 'CAMPO_REQUERIDO', detalle: 'nro_cuota inválido.' };
+    normalizado.nro_cuota = nro;
+  }
+
+  ['id_espacio', 'id_usuario', 'id_trabajador', 'id_prestamo', 'persona', 'descripcion', 'recordatorio', 'notas'].forEach(function (campo) {
     if (datos[campo] !== undefined) normalizado[campo] = datos[campo];
   });
 
@@ -77,7 +99,13 @@ function crearDeudaInterna(datosNormalizados, idForzado) {
     rev: 1,
     origen: datosNormalizados.origen || 'app',
     eliminado: false,
-    fecha_modificacion: ahora
+    fecha_modificacion: ahora,
+    id_trabajador: datosNormalizados.id_trabajador || '',
+    id_prestamo: datosNormalizados.id_prestamo || '',
+    nro_cuota: datosNormalizados.nro_cuota || '',
+    capital: datosNormalizados.capital !== undefined ? datosNormalizados.capital : '',
+    interes: datosNormalizados.interes !== undefined ? datosNormalizados.interes : '',
+    otros: datosNormalizados.otros !== undefined ? datosNormalizados.otros : ''
   };
 
   anexarFila(sheet, obj);
