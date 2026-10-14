@@ -19,6 +19,8 @@ import type {
   Espacio,
   SolicitudDinero,
   ObligacionMensual,
+  Trabajador,
+  Prestamo,
 } from '../data/types';
 
 export const ESP_FAMILIA = 'ESP_FAMILIA';
@@ -90,6 +92,10 @@ class ChanchitoDB extends Dexie {
   solicitudes!: Table<SolicitudDinero, string>;
   /** No sincronizable (CONTRACT § 2 nota final): solo cache de lectura offline. */
   obligaciones!: Table<ObligacionMensual, string>;
+  /** No sincronizable: llega completa en `cambios` de cada sincronización (CONTRACT § 4-quater). */
+  trabajadores!: Table<Trabajador, string>;
+  /** Cabeceras de préstamos (CONTRACT § 4-quinquies); las cuotas viven en `deudas`. */
+  prestamos!: Table<Prestamo, string>;
 
   constructor() {
     super('chanchito');
@@ -233,6 +239,22 @@ class ChanchitoDB extends Dexie {
           await tx.table('meta').put({ clave: CLAVE_ESPACIO_ACTIVO, valor: ESP_FAMILIA });
         }
       });
+
+    // v4: trabajadores (CONTRACT § 4-quater) y el índice de `id_trabajador` en transacciones
+    // para armar la ficha de cada uno sin escanear todo. Sin upgrade: las filas viejas no tienen
+    // trabajador y así se quedan.
+    this.version(4).stores({
+      transacciones:
+        'id_transaccion, id_espacio, fecha, id_categoria, id_usuario, id_cuenta, id_trabajador, [id_usuario+fecha], [id_categoria+fecha], [id_espacio+fecha]',
+      trabajadores: 'id_trabajador, id_espacio',
+    });
+
+    // v5: préstamos bancarios. Las cuotas son deudas con `id_prestamo`, indexado para armar
+    // el cronograma de cada préstamo sin recorrer todas las deudas.
+    this.version(5).stores({
+      deudas: 'id_deuda, id_espacio, id_usuario, estado, fecha_vencimiento, id_prestamo',
+      prestamos: 'id_prestamo, id_espacio',
+    });
   }
 }
 

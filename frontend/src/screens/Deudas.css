@@ -56,7 +56,7 @@
 
 .deudas__badge--vencida {
   background: var(--expense);
-  color: var(--surface);
+  color: var(--on-accent);
 }
 
 .deudas__badge--pagada {
@@ -107,7 +107,7 @@
   gap: var(--space-2) var(--space-3);
   padding: var(--space-3);
   border-radius: var(--radius-control);
-  background: var(--text-04);
+  background: var(--surface-2);
 }
 
 .deudas__solicitud-info {
@@ -131,4 +131,49 @@
 
 .deudas__error {
   color: var(--expense);
+}
+
+/* ---------------------------------------------------------------------- */
+/* Web (≥1024px): deudas a la izquierda, solicitudes de dinero a la derecha. */
+/* ---------------------------------------------------------------------- */
+@media (min-width: 1024px) {
+  .deudas__cabecera {
+    flex-direction: row;
+    align-items: baseline;
+    gap: var(--space-4);
+  }
+
+  /* Todo lo que sigue a la cabecera va en la columna izquierda (7 de 12)... */
+  .app-scroll > .deudas__cabecera ~ * {
+    grid-column: 1 / span 7;
+  }
+
+  /* Los préstamos van primero y a todo el ancho: son lo que más pesa y tiene fecha fija. */
+  .app-scroll > .deudas__cabecera ~ .prestamos {
+    grid-column: 1 / -1;
+    grid-row: 2;
+  }
+
+  /* ...las solicitudes ocupan la derecha junto a la lista, debajo de los préstamos. */
+  .app-scroll > .deudas__cabecera ~ .deudas__solicitudes {
+    grid-column: 8 / -1;
+    grid-row: 3 / span 3;
+    align-self: start;
+  }
+
+  .deudas__lista {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: var(--space-3);
+  }
+}
+
+/* Estado vacío compacto de "Pendientes de responder". */
+.deudas__solicitudes-vacio {
+  padding: var(--space-3) 0;
+}
+
+.deudas__solicitudes-vacio .deudas__solicitudes-ilustracion {
+  width: min(160px, 60%);
+  max-width: 160px;
 }

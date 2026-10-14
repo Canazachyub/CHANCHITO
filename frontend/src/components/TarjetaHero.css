@@ -2,7 +2,9 @@
   position: relative;
   overflow: hidden;
   border-radius: var(--radius-card);
-  box-shadow: var(--shadow-card);
+  /* Bloque destacado (DESIGN § 5): borde de acento + resplandor sutil. */
+  border: 1px solid rgba(var(--accent-rgb), 0.6);
+  box-shadow: 0 0 0 1px var(--accent) inset, 0 20px 60px -30px rgba(var(--accent-rgb), var(--glow));
   padding: var(--space-6) var(--space-5);
   isolation: isolate;
 }
@@ -12,7 +14,8 @@
   width: 220px;
   height: 220px;
   border-radius: 50%;
-  filter: blur(40px);
+  filter: blur(48px);
+  opacity: calc(0.7 * var(--glow));
   z-index: -1;
 }
 
@@ -69,4 +72,15 @@
 
 .tarjeta-hero__punto--gasto {
   background: var(--expense);
+}
+
+/* Filo superior con el gradiente del libro, igual que .tarjeta. */
+.tarjeta-hero::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: var(--filo);
 }

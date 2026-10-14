@@ -3,6 +3,9 @@ import { createRoot } from 'react-dom/client';
 import * as Sentry from '@sentry/browser';
 import App from './App';
 import './design/tokens.css';
+import { iniciarTema } from './design/tema';
+
+iniciarTema();
 
 const dsn = import.meta.env.VITE_SENTRY_DSN;
 if (dsn) {

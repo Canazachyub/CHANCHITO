@@ -18,8 +18,9 @@
   transition: background var(--dur-fast) var(--ease-standard);
 }
 
+.fila-transaccion__boton:hover,
 .fila-transaccion__boton:active {
-  background: var(--text-04);
+  background: var(--surface-2);
 }
 
 .fila-transaccion__icono {
@@ -42,7 +43,7 @@
   height: 9px;
   border-radius: 50%;
   background: var(--text-secondary);
-  border: 2px solid var(--surface);
+  border: 2px solid var(--surface-1);
 }
 
 .fila-transaccion__detalle {

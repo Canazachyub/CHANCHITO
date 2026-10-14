@@ -1,0 +1,164 @@
+/* Rueda de categorías (DESIGN § 8.1-bis). Íconos en anillo con posicionamiento absoluto sobre un círculo. */
+
+.rueda {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.rueda__esqueleto {
+  width: 100%;
+  max-width: 380px;
+  aspect-ratio: 1;
+  margin: 0 auto;
+  border-radius: 50%;
+}
+
+.rueda__lienzo {
+  position: relative;
+  width: 100%;
+  max-width: 380px;
+  aspect-ratio: 1;
+  margin: 0 auto;
+}
+
+.rueda__dona {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 62%;
+  height: 62%;
+  transform: translate(-50%, -50%);
+  overflow: visible;
+}
+
+.rueda__pista {
+  fill: none;
+  stroke: var(--surface-2);
+  stroke-width: 14;
+}
+
+.rueda__porcion {
+  fill: none;
+  stroke-width: 14;
+  cursor: pointer;
+  transition: stroke-width var(--dur-fast) var(--ease-standard), opacity var(--dur-fast) var(--ease-standard);
+  -webkit-tap-highlight-color: transparent;
+  animation: rueda-entra 600ms var(--ease-standard) both;
+}
+
+.rueda__porcion:hover,
+.rueda__porcion:active {
+  stroke-width: 17;
+}
+
+@keyframes rueda-entra {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.rueda__centro {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 36%;
+  aspect-ratio: 1;
+  transform: translate(-50%, -50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  border-radius: 50%;
+  text-align: center;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.rueda__total {
+  color: var(--expense);
+  font-size: var(--fs-body);
+  line-height: 1.1;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+}
+
+.rueda__total--largo {
+  font-size: var(--fs-small);
+}
+
+.rueda__leyenda {
+  max-width: 100%;
+  color: var(--text-2);
+  font-size: var(--fs-micro);
+  line-height: var(--lh-micro);
+}
+
+/* ---- Íconos del anillo ---- */
+.rueda__item {
+  position: absolute;
+  transform: translate(-50%, -50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  width: 56px;
+  min-height: 60px;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.rueda__icono {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--touch-target);
+  height: var(--touch-target);
+  border: 1.5px solid var(--cat, var(--line-strong));
+  border-radius: 50%;
+  background: var(--surface-1);
+  font-size: 22px;
+  line-height: 1;
+  transition: transform var(--dur-fast) var(--ease-standard), background var(--dur-fast) var(--ease-standard);
+}
+
+.rueda__item:active .rueda__icono {
+  transform: scale(1.18);
+  background: var(--surface-3);
+}
+
+.rueda__item--activo .rueda__icono {
+  transform: scale(1.12);
+  border-width: 2px;
+  background: var(--surface-3);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--cat, var(--accent)) 35%, transparent);
+}
+
+.rueda__nombre {
+  max-width: 64px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--text-3);
+  font-size: var(--fs-micro);
+  line-height: var(--lh-micro);
+}
+
+.rueda__pct {
+  color: var(--text-2);
+  font-size: var(--fs-micro);
+  line-height: var(--lh-micro);
+}
+
+.rueda__pct--cero {
+  color: var(--text-3);
+}
+
+/* ---- Pista cuando aún no hay gastos ---- */
+.rueda__pista-uso {
+  margin-top: var(--space-2);
+  text-align: center;
+  color: var(--text-2);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .rueda__icono { transition: none; }
+}

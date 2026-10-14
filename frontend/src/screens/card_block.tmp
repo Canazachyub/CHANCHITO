@@ -1,0 +1,99 @@
+        <ul className="prestamos__lista">
+          {prestamos.map(({ prestamo, cuotas, resumen }) => {
+            const abierto = expandido === prestamo.id_prestamo;
+            const abiertas = resumen.cuotas_total - resumen.cuotas_pagadas;
+            const total = Math.max(prestamo.plazo, resumen.cuotas_total);
+            const pagadas = Math.max(0, total - abiertas);
+            const pct = total > 0 ? Math.min(100, (pagadas / total) * 100) : 0;
+            const prox = resumen.proxima;
+            const diasProx = prox ? diasHasta(prox.fecha, hoy) : 0;
+            const claseProx = !prox ? '' : diasProx < 0 ? 'prestamos__prox--vencida' : diasProx <= 7 ? 'prestamos__prox--urgente' : '';
+            const cuotaProx = prox ? cuotas.find((c) => c.id_deuda === prox.id_deuda) : undefined;
+
+            return (
+              <li key={prestamo.id_prestamo} className="tarjeta prestamos__tarjeta">
+                <div className="prestamos__fila-superior">
+                  <div>
+                    <p className="u-headline">{prestamo.entidad}</p>
+                    <p className="u-footnote">{prestamo.descripcion || `TEA ${prestamo.tea}% · ${prestamo.plazo} meses`}</p>
+                  </div>
+                  <div className="prestamos__badges">
+                    {resumen.vencidas > 0 && (
+                      <span className="prestamos__badge prestamos__badge--vencida">
+                        {resumen.vencidas} {resumen.vencidas === 1 ? 'vencida' : 'vencidas'}
+                      </span>
+                    )}
+                    <span className="prestamos__badge">{ETIQUETA_TIPO[prestamo.tipo]}</span>
+                  </div>
+                </div>
+
+                <div className="prestamos__progreso">
+                  <div
+                    className="prestamos__barra"
+                    role="progressbar"
+                    aria-valuemin={0}
+                    aria-valuemax={total}
+                    aria-valuenow={pagadas}
+                    aria-label="Cuotas pagadas"
+                  >
+                    <div className="prestamos__barra-relleno" style={{ width: `${pct}%` }} />
+                  </div>
+                  <p className="u-footnote u-num">
+                    {pagadas}/{total} cuotas pagadas
+                  </p>
+                </div>
+
+                <div className="prestamos__cifras">
+                  <div>
+                    <p className="prestamos__rotulo">Saldo de capital</p>
+                    <p className="prestamos__saldo u-num">{formatMoneda(resumen.saldo_capital)}</p>
+                  </div>
+                  <div>
+                    <p className="prestamos__rotulo">Total por pagar (con intereses)</p>
+                    <p className="u-amount-md u-num">{formatMoneda(resumen.total_por_pagar)}</p>
+                  </div>
+                  <div>
+                    <p className="prestamos__rotulo">Intereses por pagar</p>
+                    <p className="u-amount-md u-num prestamos__interes">{formatMoneda(resumen.intereses_por_pagar)}</p>
+                  </div>
+                </div>
+
+                {prox ? (
+                  <div className={`prestamos__prox ${claseProx}`}>
+                    <div>
+                      <p className="prestamos__rotulo">Próxima cuota (N° {prox.nro})</p>
+                      <p className="u-callout">
+                        {formatFechaLarga(prox.fecha)} · <span className="u-num">{formatMoneda(prox.monto)}</span>
+                      </p>
+                      <p className="u-footnote prestamos__prox-dias">{textoDias(diasProx)}</p>
+                    </div>
+                    {cuotaProx && (
+                      <Boton
+                        variante="primario"
+                        tamano="chico"
+                        onClick={() => setCuotaPago({ cuota: cuotaProx, cuentaDefecto: prestamo.id_cuenta })}
+                      >
+                        Pagar cuota
+                      </Boton>
+                    )}
+                  </div>
+                ) : (
+                  <p className="u-footnote prestamos__prox-dias">Préstamo cancelado: no quedan cuotas pendientes.</p>
+                )}
+
+                <button
+                  type="button"
+                  className="prestamos__toggle"
+                  aria-expanded={abierto}
+                  onClick={() => setExpandido(abierto ? null : prestamo.id_prestamo)}
+                >
+                  {abierto ? 'Ocultar cronograma ▴' : 'Ver cronograma ▾'}
+                </button>
+
+                {abierto && (
+                  <Cronograma cuotas={cuotas} hoy={hoy} onPagar={(c) => setCuotaPago({ cuota: c, cuentaDefecto: prestamo.id_cuenta })} />
+                )}
+              </li>
+            );
+          })}
+        </ul>

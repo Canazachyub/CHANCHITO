@@ -14,9 +14,9 @@
   justify-content: center;
   gap: var(--space-2);
   padding: var(--space-5) var(--space-4);
-  background: var(--text-04);
+  background: var(--surface-2);
   border-radius: var(--radius-control);
-  border: 1px solid transparent;
+  border: 1px solid var(--line);
 }
 
 .campo-monto__caja:focus-within {
@@ -25,8 +25,9 @@
 }
 
 .campo-monto__simbolo {
+  font-family: var(--font-mono);
   font-size: var(--fs-title-2);
-  font-weight: 600;
+  font-weight: 500;
   color: var(--text-secondary);
 }
 
@@ -37,9 +38,11 @@
   width: 100%;
   max-width: 220px;
   text-align: center;
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
   font-size: var(--fs-large-title);
-  font-weight: 700;
-  letter-spacing: -0.02em;
+  font-weight: 500;
+  letter-spacing: -0.03em;
   color: var(--text);
 }
 

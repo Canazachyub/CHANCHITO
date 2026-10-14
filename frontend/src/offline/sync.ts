@@ -103,7 +103,7 @@ export async function sincronizarAhora(): Promise<void> {
       const respuesta = await sincronizarHttp(idEspacio, desde, operaciones);
 
       await procesarResultados(respuesta.resultados, colaEnviada);
-      await mergeCambios(respuesta.cambios);
+      await mergeCambios(respuesta.cambios, idEspacio);
       await db.meta.put({ clave: claveTs, valor: respuesta.servidor_ts });
     }
 
@@ -302,7 +302,7 @@ async function mergeSincronizable<T extends { sync_status: SyncStatus }>(
   });
 }
 
-async function mergeCambios(cambios: CambiosServidor): Promise<void> {
+async function mergeCambios(cambios: CambiosServidor, idEspacio: string): Promise<void> {
   await mergeSincronizable<Transaccion>(db.transacciones, cambios.transacciones, (f) => f.id_transaccion);
   await mergeSincronizable<Deuda>(db.deudas, cambios.deudas, (f) => f.id_deuda);
   await mergeSincronizable<Presupuesto>(db.presupuestos, cambios.presupuestos, (f) => f.id_presupuesto);
@@ -310,7 +310,21 @@ async function mergeCambios(cambios: CambiosServidor): Promise<void> {
   // siempre se pisan con lo último del servidor, no tienen sync_status que respetar.
   if (cambios.categorias.length) await db.categorias.bulkPut(cambios.categorias);
   if (cambios.cuentas.length) await db.cuentas.bulkPut(cambios.cuentas);
+  // Categorías y cuentas llegan COMPLETAS (solo las activas del espacio), no incrementales:
+  // lo que el teléfono tiene de ese espacio y ya no vino fue desactivado en el servidor.
+  // Sin esto, una categoría dada de baja seguía apareciendo para siempre en el celular.
+  // Con la lista vacía no se borra nada: podría ser un backend viejo o una respuesta parcial.
+  if (cambios.categorias.length) {
+    const vigentes = new Set(cambios.categorias.map((c) => c.id_categoria));
+    await db.categorias.where('id_espacio').equals(idEspacio).filter((c) => !vigentes.has(c.id_categoria)).delete();
+  }
+  if (cambios.cuentas.length) {
+    const vigentes = new Set(cambios.cuentas.map((c) => c.id_cuenta));
+    await db.cuentas.where('id_espacio').equals(idEspacio).filter((c) => !vigentes.has(c.id_cuenta)).delete();
+  }
   if (cambios.usuarios.length) await db.usuarios.bulkPut(cambios.usuarios);
+  if (cambios.trabajadores?.length) await db.trabajadores.bulkPut(cambios.trabajadores);
+  if (cambios.prestamos?.length) await db.prestamos.bulkPut(cambios.prestamos);
 }
 
 // ---------------------------------------------------------------------------------------------

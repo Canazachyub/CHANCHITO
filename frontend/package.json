@@ -7,23 +7,33 @@
     "dev": "vite",
     "build": "tsc -b && vite build",
     "preview": "vite preview",
-    "typecheck": "tsc -b --noEmit"
+    "typecheck": "tsc -b --noEmit",
+    "test": "vitest run",
+    "build:apk": "node scripts/verificar-env-apk.mjs && tsc -b && vite build --mode apk",
+    "cap:sync": "npx cap sync android",
+    "apk": "npm run build:apk && npx cap sync android && cd android && .\\gradlew.bat assembleDebug"
   },
   "dependencies": {
+    "@capacitor/android": "^6.2.0",
+    "@capacitor/core": "^6.2.0",
     "@sentry/browser": "^8.47.0",
     "dexie": "^4.0.10",
     "dexie-react-hooks": "^1.1.7",
+    "echarts": "^5.6.0",
+    "echarts-for-react": "^3.0.6",
+    "exceljs": "^4.4.0",
     "react": "^18.3.1",
-    "react-dom": "^18.3.1",
-    "recharts": "^2.15.0"
+    "react-dom": "^18.3.1"
   },
   "devDependencies": {
+    "@capacitor/cli": "^6.2.0",
     "@types/react": "^18.3.17",
     "@types/react-dom": "^18.3.5",
     "@vitejs/plugin-react": "^4.3.4",
     "typescript": "^5.7.2",
     "vite": "^6.0.5",
     "vite-plugin-pwa": "^0.21.1",
+    "vitest": "^3.2.4",
     "workbox-window": "^7.3.0"
   }
 }

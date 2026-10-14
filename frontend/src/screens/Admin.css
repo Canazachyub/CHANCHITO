@@ -85,6 +85,40 @@
   color: var(--accent);
 }
 
+.admin__badge--pendiente-pw {
+  background: var(--warning-12);
+  color: var(--warning);
+}
+
+.admin__acciones-usuario {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: var(--space-2);
+  flex-shrink: 0;
+}
+
+.admin__password-temporal {
+  padding: var(--space-5) var(--space-3);
+  text-align: center;
+  font-size: 26px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  word-break: break-all;
+  user-select: all;
+  border-radius: var(--radius-control);
+  background: var(--surface-2);
+  border: 1px dashed var(--neutro);
+  color: var(--text);
+}
+
+.admin__aviso-password {
+  padding: var(--space-3);
+  border-radius: var(--radius-control);
+  background: var(--expense-08);
+  color: var(--expense);
+}
+
 .admin__error {
   color: var(--expense);
 }
@@ -119,7 +153,7 @@
   gap: var(--space-3);
   padding: var(--space-3);
   border-radius: var(--radius-control);
-  background: var(--text-04);
+  background: var(--surface-2);
 }
 
 .admin__obligacion--inactiva {
@@ -150,4 +184,72 @@
 .admin__badge--pendiente {
   background: var(--text-08);
   color: var(--text-secondary);
+}
+
+.admin__importar {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  padding-top: var(--space-3);
+  border-top: 1px solid var(--separator);
+}
+
+.admin__importar .u-caption {
+  color: var(--text-secondary);
+}
+
+.admin__importar-lista {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  max-height: 40vh;
+  overflow-y: auto;
+  margin: var(--space-2) 0 var(--space-3);
+}
+
+/* ---------------------------------------------------------------------- */
+/* Web (≥1024px): usuarios | trabajadores | obligaciones como columnas.     */
+/* 1024–1279px: usuarios y trabajadores arriba, obligaciones debajo.        */
+/* ---------------------------------------------------------------------- */
+@media (min-width: 1024px) {
+  .admin__cabecera {
+    flex-direction: row;
+    align-items: baseline;
+    gap: var(--space-4);
+  }
+
+  .app-scroll > .admin__cabecera ~ * {
+    grid-column: 1 / span 6;
+  }
+
+  .app-scroll > .admin__cabecera ~ .admin__obligaciones[aria-label='Trabajadores'] {
+    grid-column: 7 / -1;
+    grid-row: 2 / span 2;
+    align-self: start;
+  }
+
+  .app-scroll > .admin__cabecera ~ .admin__obligaciones[aria-label='Obligaciones mensuales'] {
+    grid-column: 1 / -1;
+  }
+}
+
+@media (min-width: 1280px) {
+  .app-scroll > .admin__cabecera ~ * {
+    grid-column: 1 / span 4;
+  }
+
+  .app-scroll > .admin__cabecera ~ .admin__obligaciones[aria-label='Trabajadores'] {
+    grid-column: 5 / span 4;
+  }
+
+  .app-scroll > .admin__cabecera ~ .admin__obligaciones[aria-label='Obligaciones mensuales'] {
+    grid-column: 9 / span 4;
+    grid-row: 2 / span 2;
+    align-self: start;
+  }
+}
+
+.admin__mono,
+.admin__password-temporal {
+  font-family: var(--font-mono, ui-monospace, monospace);
 }

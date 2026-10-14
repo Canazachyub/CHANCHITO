@@ -21,3 +21,14 @@ coverage/
 .DS_Store
 Thumbs.db
 *.swp
+
+# Datos reales de la empresa (DNI, sueldos, SUNAT). Solo en esta máquina.
+datos-locales/
+
+# APK compiladas: se distribuyen aparte, no se versionan.
+*.apk
+
+# Copia generada de build/Code.gs para pegar en Apps Script.
+/Code.gs
+# Capturas de referencia de una app de terceros (Monefy): no se publican.
+Aplicaciones fotos/

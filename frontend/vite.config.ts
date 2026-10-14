@@ -1,13 +1,21 @@
-import { defineConfig } from 'vite';
+import { defineConfig, searchForWorkspaceRoot } from 'vite';
 import react from '@vitejs/plugin-react';
 import { VitePWA } from 'vite-plugin-pwa';
 
 // CONTRACT § 6: despliegue en GitHub Pages bajo subruta → base '/CHANCHITO/'.
-export default defineConfig({
-  base: '/CHANCHITO/',
+// `vite build --mode apk` (Capacitor): los assets cuelgan de la raíz del WebView → base './'
+// y sin service worker (un SW cacheado dentro del WebView deja la app "vieja"; la APK se
+// actualiza instalando una APK nueva).
+export default defineConfig(({ mode }) => {
+  const esApk = mode === 'apk';
+  return {
+  base: esApk ? './' : '/CHANCHITO/',
+  // ../datos-locales (fuera de git) alimenta el modo demo con la data real de la empresa.
+  server: { fs: { allow: [searchForWorkspaceRoot(process.cwd()), '../datos-locales'] } },
   plugins: [
     react(),
     VitePWA({
+      disable: esApk,
       registerType: 'autoUpdate',
       // El manifest ya vive en public/manifest.webmanifest y index.html lo enlaza a mano
       // (index.html es de solo lectura para este agente): no generar uno duplicado.
@@ -25,4 +33,5 @@ export default defineConfig({
       },
     }),
   ],
+};
 });

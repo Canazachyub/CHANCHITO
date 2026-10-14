@@ -11,10 +11,10 @@
 }
 
 .conflicto-tarjeta {
-  background: var(--surface);
-  border-radius: 16px;
+  background: var(--surface-1);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-card);
   padding: 16px;
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.06);
 }
 
 .conflicto-titulo {
@@ -44,8 +44,9 @@
 
 .conflicto-columna {
   min-width: 0;
-  border: 1px solid var(--separator);
-  border-radius: 12px;
+  border: 1px solid var(--line);
+  background: var(--surface-2);
+  border-radius: var(--radius-control);
   padding: 10px;
 }
 
@@ -68,7 +69,7 @@
 }
 
 .conflicto-campo--difiere {
-  background: rgba(255, 69, 58, 0.12); /* variante de opacidad de --expense: resalta lo que cambió */
+  background: var(--expense-12); /* resalta lo que cambió */
   padding-left: 6px;
   padding-right: 6px;
   margin: 0 -6px;
@@ -88,6 +89,7 @@
 }
 
 .conflicto-campo-valor--monto {
+  font-family: var(--font-mono);
   font-variant-numeric: tabular-nums;
 }
 
@@ -99,7 +101,7 @@
 .conflicto-boton {
   flex: 1;
   border: none;
-  border-radius: 12px;
+  border-radius: var(--radius-control);
   padding: 10px 12px;
   font-size: 0.9375rem;
   font-weight: 600;
@@ -114,26 +116,21 @@
 
 .conflicto-boton--mia {
   background: var(--accent);
-  color: var(--surface);
+  color: var(--on-accent);
 }
 
 .conflicto-boton--servidor {
-  background: rgba(10, 132, 255, 0.12); /* variante de opacidad de --accent */
+  background: var(--accent-12);
   color: var(--accent);
 }
 
 .conflicto-boton--corregir {
   background: var(--accent);
-  color: var(--surface);
+  color: var(--on-accent);
 }
 
 .conflicto-boton--descartar {
-  background: rgba(255, 69, 58, 0.12); /* variante de opacidad de --expense */
+  background: var(--expense-12);
   color: var(--expense);
 }
 
-@media (prefers-color-scheme: dark) {
-  .conflicto-tarjeta {
-    box-shadow: none;
-  }
-}

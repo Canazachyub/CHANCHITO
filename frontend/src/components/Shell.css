@@ -1,0 +1,57 @@
+/**
+ * Layout de la app (DESIGN § 8.2–8.3).
+ *   < 768px      móvil: una columna + tab bar inferior (estilos base de tokens.css).
+ *   768–1023px   tablet: riel de 72px a la izquierda.
+ *   ≥ 1024px     web: barra lateral de 240px (o 72px colapsada) + rejilla de 12 columnas.
+ * La barra lateral es fija; .shell > .app-scroll deja su margen izquierdo y el contenido
+ * se centra a 1440px como máximo.
+ */
+
+@media (min-width: 768px) {
+  .shell > .app-scroll {
+    margin-left: 72px;
+    padding: var(--space-6);
+    /* ya no hay tab bar inferior que reservar */
+    padding-bottom: var(--space-7);
+  }
+
+  /* el selector de libro vive en la barra lateral */
+  .shell .selector-espacio-wrap {
+    display: none;
+  }
+}
+
+@media (min-width: 1024px) {
+  .shell > .app-scroll {
+    margin-left: 240px;
+    padding: var(--space-7);
+    transition: margin-left var(--dur-medium) var(--ease-standard);
+    /* Rejilla de 12 columnas: cada pantalla coloca sus bloques; por defecto ocupan todo. */
+    display: grid;
+    grid-template-columns: repeat(12, minmax(0, 1fr));
+    align-content: start;
+    gap: var(--space-4);
+  }
+
+  .shell.shell--colapsada > .app-scroll {
+    margin-left: 72px;
+  }
+
+  .shell > .app-scroll > * {
+    grid-column: 1 / -1;
+    min-width: 0;
+  }
+}
+
+/* Centrado a 1440px: el padding lateral crece cuando la pantalla es más ancha que el tope. */
+@media (min-width: 1920px) {
+  .shell > .app-scroll {
+    padding-left: max(var(--space-7), calc((100vw - 240px - 1440px) / 2));
+    padding-right: max(var(--space-7), calc((100vw - 240px - 1440px) / 2));
+  }
+
+  .shell.shell--colapsada > .app-scroll {
+    padding-left: max(var(--space-7), calc((100vw - 72px - 1440px) / 2));
+    padding-right: max(var(--space-7), calc((100vw - 72px - 1440px) / 2));
+  }
+}

@@ -1,16 +1,22 @@
+import { useEffect } from 'react';
 import { cambiarEspacio, useEspacioActivo, useEspacios } from '../data/api';
 import './SelectorEspacio.css';
 
 /**
  * Control segmentado fijo arriba de Resumen, Gastos y Deudas (CONTRACT § 6): "tiene que ser
- * imposible mirar la pantalla y no saber en qué libro estás". Reutiliza el mismo patrón visual
- * que el chip gasto/ingreso de los formularios (fondo tenue + segmento activo elevado con el
- * color de acento) en vez de inventar una paleta nueva por espacio — el contrato solo permite
- * los tokens de color ya declarados.
+ * imposible mirar la pantalla y no saber en qué libro estás". El segmento activo se rellena con
+ * el acento del libro (Familia cian, Telcom ámbar, DESIGN § 2.2) y además fija html[data-libro].
  */
 export default function SelectorEspacio() {
   const espacios = useEspacios();
   const activo = useEspacioActivo();
+  const idActivo = activo?.id_espacio;
+
+  // Tiñe --accent (y el filo de los bloques) con el color del libro activo (DESIGN § 3.3).
+  useEffect(() => {
+    if (idActivo === undefined) return;
+    document.documentElement.dataset.libro = idActivo === 'ESP_TELCOM' ? 'telcom' : 'familia';
+  }, [idActivo]);
 
   if (espacios === undefined || activo === undefined) {
     return <div className="u-skeleton selector-espacio__esqueleto" aria-hidden="true" />;

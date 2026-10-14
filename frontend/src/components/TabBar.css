@@ -9,9 +9,9 @@
   height: calc(var(--tab-bar-height) + var(--safe-bottom));
   padding-bottom: var(--safe-bottom);
   background: var(--surface-translucent);
-  backdrop-filter: blur(20px) saturate(180%);
-  -webkit-backdrop-filter: blur(20px) saturate(180%);
-  border-top: 1px solid var(--separator);
+  backdrop-filter: blur(20px) saturate(160%);
+  -webkit-backdrop-filter: blur(20px) saturate(160%);
+  border-top: 1px solid var(--line);
   z-index: 50;
 }
 
@@ -36,8 +36,61 @@
   color: var(--accent);
 }
 
+.tab-bar__item--activo .tab-bar__etiqueta {
+  font-weight: 600;
+}
+
 .tab-bar__etiqueta {
   font-size: var(--fs-caption-2);
   line-height: var(--lh-caption-2);
   font-weight: 500;
+}
+
+/* Tablet y web: la navegación vive en la barra lateral (BarraLateral). */
+@media (min-width: 768px) {
+  .tab-bar {
+    display: none;
+  }
+}
+
+.tab-bar__icono {
+  position: relative;
+  display: inline-flex;
+}
+
+/* Insignia roja de hallazgos 'alta' (compartida con la barra lateral). */
+.insignia-alta {
+  min-width: 18px;
+  height: 18px;
+  padding: 0 5px;
+  border-radius: var(--radius-pill);
+  background: var(--expense);
+  color: var(--on-accent);
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 700;
+  line-height: 18px;
+  text-align: center;
+}
+
+.insignia-alta--icono {
+  position: absolute;
+  top: -6px;
+  left: 55%;
+  box-shadow: 0 0 0 2px var(--surface-1);
+}
+
+/* 6 pestañas en 360px: 60px cada una; bajo 400px las etiquetas se compactan. */
+@media (max-width: 399px) {
+  .tab-bar__item {
+    min-width: 0;
+  }
+  .tab-bar__etiqueta {
+    font-size: 10px;
+    letter-spacing: -0.01em;
+    max-width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
 }

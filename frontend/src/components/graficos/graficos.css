@@ -1,0 +1,315 @@
+/* Gráficos y KPIs. Los tokens llevan respaldo con los valores de DESIGN.md por si tokens.css aún no los define. */
+
+.grafico {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-width: 0;
+}
+
+.grafico__cabecera {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.grafico__titulos {
+  min-width: 0;
+}
+
+.grafico__titulo {
+  font-family: var(--font-display, 'Space Grotesk', system-ui, sans-serif);
+  font-size: 17px;
+  line-height: 22px;
+  font-weight: 600;
+  color: var(--text, #f2f4f8);
+}
+
+.grafico__subtitulo {
+  font-size: 11px;
+  line-height: 14px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--text-3, #5d6577);
+  margin-top: 2px;
+}
+
+.grafico__conclusion {
+  font-size: 13px;
+  line-height: 18px;
+  color: var(--text-2, var(--text-secondary, #9aa3b5));
+}
+
+.grafico__acciones {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.grafico__chip {
+  min-height: 28px;
+  padding: 0 12px;
+  border-radius: 999px;
+  border: 1px solid var(--line, var(--separator, rgba(255, 255, 255, 0.08)));
+  background: transparent;
+  color: var(--text-2, var(--text-secondary, #9aa3b5));
+  font-size: 12px;
+  cursor: pointer;
+}
+
+.grafico__chip[aria-pressed='true'],
+.grafico__chip--activo {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.grafico__lienzo {
+  height: var(--alto, 224px);
+  width: 100%;
+}
+
+.grafico__vacio {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  color: var(--text-3, #5d6577);
+  font-size: 13px;
+}
+
+.grafico__tabla-wrap {
+  overflow-x: auto;
+  max-height: 260px;
+}
+
+.grafico__tabla {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 12px;
+  font-family: var(--font-mono, 'JetBrains Mono', ui-monospace, monospace);
+  font-variant-numeric: tabular-nums;
+}
+
+.grafico__tabla th,
+.grafico__tabla td {
+  padding: 6px 8px;
+  text-align: right;
+  border-bottom: 1px solid var(--line, var(--separator, rgba(255, 255, 255, 0.08)));
+  color: var(--text, #f2f4f8);
+  white-space: nowrap;
+}
+
+.grafico__tabla th:first-child,
+.grafico__tabla td:first-child {
+  text-align: left;
+}
+
+.grafico__tabla th {
+  color: var(--text-3, #5d6577);
+  font-weight: 500;
+}
+
+@media (min-width: 1024px) {
+  .grafico__lienzo {
+    height: calc(var(--alto, 224px) * 1.2);
+  }
+}
+
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+
+/* ---------------------------------------------------------------- KpiTile */
+
+.kpi {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+  padding: 12px 14px 8px;
+  border-radius: 14px;
+  border: 1px solid var(--line, var(--separator, rgba(255, 255, 255, 0.08)));
+  background: var(--surface-1, var(--surface, #0d0f14));
+}
+
+.kpi__rotulo {
+  font-size: 11px;
+  line-height: 14px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--text-3, #5d6577);
+}
+
+.kpi__valor {
+  font-family: var(--font-display, 'Space Grotesk', system-ui, sans-serif);
+  font-size: 22px;
+  line-height: 28px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.kpi__delta {
+  font-family: var(--font-mono, 'JetBrains Mono', ui-monospace, monospace);
+  font-size: 11px;
+  line-height: 14px;
+  color: var(--text-2, var(--text-secondary, #9aa3b5));
+}
+
+.kpi__delta--bueno {
+  color: var(--income, #3dffa2);
+}
+
+.kpi__delta--malo {
+  color: var(--expense, #ff4d6d);
+}
+
+.kpi__comparado {
+  color: var(--text-3, #5d6577);
+  font-family: var(--font-ui, Inter, system-ui, sans-serif);
+}
+
+.kpi__spark {
+  margin-top: 6px;
+}
+
+/* ---------------------------------------------------------------- Cumplimiento (G13) */
+
+.cumplimiento {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.cumplimiento__fila {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.cumplimiento__texto {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  font-size: 13px;
+  color: var(--text-2, var(--text-secondary, #9aa3b5));
+}
+
+.cumplimiento__monto {
+  font-family: var(--font-mono, 'JetBrains Mono', ui-monospace, monospace);
+  font-variant-numeric: tabular-nums;
+  color: var(--text, #f2f4f8);
+}
+
+.cumplimiento__pista {
+  height: 10px;
+  border-radius: 999px;
+  background: var(--surface-2, #141720);
+  overflow: hidden;
+}
+
+.cumplimiento__relleno {
+  display: block;
+  height: 100%;
+  border-radius: 999px;
+  background: linear-gradient(90deg, var(--accent), var(--income, #3dffa2));
+  transition: width 600ms cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .cumplimiento__relleno {
+    transition: none;
+  }
+}
+
+/* ---------------------------------------------------------------- Ranking (G10) */
+
+.ranking {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.ranking__fila {
+  display: grid;
+  grid-template-columns: 28px 1fr auto;
+  align-items: center;
+  gap: 12px;
+}
+
+.ranking__medalla {
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  font-family: var(--font-mono, 'JetBrains Mono', ui-monospace, monospace);
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-2, var(--text-secondary, #9aa3b5));
+  border: 1px solid var(--line-strong, rgba(255, 255, 255, 0.16));
+}
+
+.ranking__medalla--1 {
+  color: var(--on-accent);
+  background: var(--accent);
+  border-color: var(--accent);
+}
+
+.ranking__medalla--2,
+.ranking__medalla--3 {
+  color: var(--accent);
+  border-color: var(--accent);
+}
+
+.ranking__info {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+
+.ranking__nombre {
+  font-size: 15px;
+  color: var(--text, #f2f4f8);
+}
+
+.ranking__detalle {
+  font-size: 12px;
+  color: var(--text-3, #5d6577);
+}
+
+.ranking__barra {
+  height: 4px;
+  border-radius: 999px;
+  background: var(--surface-2, #141720);
+  overflow: hidden;
+}
+
+.ranking__barra > span {
+  display: block;
+  height: 100%;
+  border-radius: 999px;
+  background: var(--accent);
+}
+
+.ranking__monto {
+  font-family: var(--font-mono, 'JetBrains Mono', ui-monospace, monospace);
+  font-variant-numeric: tabular-nums;
+  font-size: 15px;
+  color: var(--text, #f2f4f8);
+}

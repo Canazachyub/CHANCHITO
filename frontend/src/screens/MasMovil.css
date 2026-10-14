@@ -1,0 +1,149 @@
+/* Menú "Más" del móvil (DESIGN § 8.1). */
+
+.mas {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.mas__perfil {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.mas__avatar {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background: var(--accent-12);
+  border: 1px solid var(--accent);
+  color: var(--accent);
+  font-family: var(--font-display);
+  font-size: var(--fs-h2);
+  font-weight: 700;
+}
+
+.mas__perfil-datos {
+  display: flex;
+  flex-direction: column;
+}
+
+.mas__bloque {
+  padding: var(--space-2) var(--space-3);
+}
+
+.mas__lista {
+  display: flex;
+  flex-direction: column;
+}
+
+.mas__lista > li + li {
+  border-top: 1px solid var(--line);
+}
+
+.mas__fila {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  width: 100%;
+  min-height: 56px;
+  padding: var(--space-2) 0;
+  text-align: left;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.mas__fila:active {
+  opacity: 0.6;
+}
+
+.mas__fila-icono {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 40px;
+  height: 40px;
+  border-radius: var(--radius-control);
+  background: var(--surface-2);
+  color: var(--accent);
+}
+
+.mas__fila--peligro .mas__fila-icono,
+.mas__fila--peligro .mas__fila-etiqueta {
+  color: var(--expense);
+}
+
+.mas__fila-texto {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.mas__fila-etiqueta {
+  font-weight: 600;
+}
+
+.mas__flecha {
+  flex-shrink: 0;
+  color: var(--text-3);
+}
+
+/* ---- Sincronización ---- */
+.mas__sync {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-3);
+}
+
+.mas__sync-texto {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.mas__punto {
+  flex-shrink: 0;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+}
+
+.mas__punto--ok {
+  background: var(--income);
+}
+
+.mas__punto--sync {
+  background: var(--warning);
+}
+
+.mas__punto--offline {
+  background: var(--expense);
+}
+
+.mas__sync-boton {
+  min-height: var(--touch-target);
+  padding: 0 var(--space-4);
+  border: 1px solid var(--line-strong);
+  border-radius: var(--radius-pill);
+  color: var(--accent);
+  font-weight: 600;
+}
+
+.mas__sync-boton:disabled {
+  opacity: 0.4;
+}
+
+/* ---- Apariencia ---- */
+.mas__tema {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  padding: var(--space-3);
+}

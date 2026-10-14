@@ -1,0 +1,373 @@
+/* Hoja de registro (DESIGN § 8.1): bottom sheet. Solo tokens de src/design/tokens.css. */
+
+.hoja-registro__fondo {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  background: var(--scrim);
+  animation: hoja-fondo-entra var(--dur-medium) var(--ease-standard);
+}
+
+.hoja-registro__fondo--saliendo {
+  opacity: 0;
+  transition: opacity 180ms var(--ease-standard);
+}
+
+.hoja-registro {
+  --hoja-color: var(--expense);
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  max-width: 520px;
+  max-height: 94dvh;
+  background: var(--surface-1);
+  border: 1px solid var(--line-strong);
+  border-bottom: none;
+  border-radius: var(--radius-card) var(--radius-card) 0 0;
+  box-shadow: var(--shadow-modal);
+  animation: hoja-sube var(--dur-medium) var(--ease-standard);
+  overscroll-behavior: contain;
+}
+
+.hoja-registro--ingreso {
+  --hoja-color: var(--income);
+}
+
+.hoja-registro--arrastrando {
+  transition: none;
+}
+
+.hoja-registro--saliendo {
+  transform: translateY(100%);
+  transition: transform 180ms var(--ease-standard);
+}
+
+@keyframes hoja-sube {
+  from { transform: translateY(40%); opacity: 0.4; }
+  to { transform: translateY(0); opacity: 1; }
+}
+
+@keyframes hoja-fondo-entra {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+/* ---- Asa + tipo (zona de arrastre) ---- */
+.hoja-registro__agarre {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-2) var(--space-4) var(--space-2);
+  touch-action: none;
+  cursor: grab;
+}
+
+.hoja-registro__asa {
+  width: 40px;
+  height: 4px;
+  border-radius: var(--radius-pill);
+  background: var(--line-strong);
+}
+
+.hoja-registro__tipos {
+  display: flex;
+  gap: var(--space-2);
+  width: 100%;
+  padding: 3px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-pill);
+  background: var(--surface-2);
+}
+
+.hoja-registro__tipo {
+  flex: 1;
+  min-height: 40px;
+  border-radius: var(--radius-pill);
+  color: var(--text-2);
+  font-weight: 600;
+  transition: background var(--dur-fast) var(--ease-standard), color var(--dur-fast) var(--ease-standard);
+}
+
+.hoja-registro__tipo--gasto {
+  background: var(--expense);
+  color: var(--on-accent);
+}
+
+.hoja-registro__tipo--ingreso {
+  background: var(--income);
+  color: var(--on-accent);
+}
+
+/* ---- Cuerpo desplazable ---- */
+.hoja-registro__cuerpo {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  padding: var(--space-2) var(--space-4) var(--space-4);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.hoja-registro__monto {
+  position: relative;
+  display: flex;
+  align-items: baseline;
+  justify-content: flex-end;
+  gap: var(--space-2);
+  min-height: 56px;
+  padding: var(--space-2) var(--space-4);
+  border: 1px solid var(--line);
+  border-bottom: 2px solid var(--hoja-color);
+  border-radius: var(--radius-control);
+  background: var(--surface-2);
+  overflow: hidden;
+}
+
+.hoja-registro__moneda {
+  margin-right: auto;
+  color: var(--text-2);
+  font-family: var(--font-mono);
+  font-size: var(--fs-h3);
+}
+
+.hoja-registro__valor {
+  font-size: var(--fs-h1);
+  line-height: var(--lh-h1);
+  color: var(--text);
+  letter-spacing: -0.02em;
+  overflow-x: auto;
+  white-space: nowrap;
+  scrollbar-width: none;
+}
+
+.hoja-registro__valor::-webkit-scrollbar {
+  display: none;
+}
+
+.hoja-registro__monto--ok {
+  animation: hoja-pulso 360ms var(--ease-standard);
+  border-color: var(--hoja-color);
+}
+
+.hoja-registro__visto {
+  color: var(--hoja-color);
+  font-size: var(--fs-h2);
+  font-weight: 700;
+}
+
+@keyframes hoja-pulso {
+  0% { transform: scale(1); }
+  40% { transform: scale(1.04); }
+  100% { transform: scale(1); }
+}
+
+.hoja-registro__calculo {
+  min-height: 18px;
+  text-align: right;
+  color: var(--text-2);
+}
+
+/* ---- Teclado: 5 columnas; "=" ocupa 3 filas ---- */
+.hoja-registro__teclado {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: var(--space-2);
+}
+
+.hoja-registro__tecla {
+  min-height: var(--touch-target);
+  border-radius: var(--radius-control);
+  border: 1px solid var(--line);
+  background: var(--surface-2);
+  color: var(--text);
+  font-family: var(--font-mono);
+  font-size: var(--fs-h3);
+  font-weight: 500;
+  -webkit-tap-highlight-color: transparent;
+  transition: background var(--dur-fast) var(--ease-standard), transform var(--dur-fast) var(--ease-standard);
+}
+
+.hoja-registro__tecla:active {
+  background: var(--surface-3);
+  transform: scale(0.95);
+}
+
+.hoja-registro__tecla--op {
+  color: var(--accent);
+  background: var(--accent-08);
+}
+
+.hoja-registro__tecla--igual {
+  grid-row: span 3;
+  background: var(--accent);
+  color: var(--on-accent);
+  font-size: var(--fs-h2);
+  font-weight: 700;
+}
+
+/* ---- Categorías ---- */
+.hoja-registro__rotulo {
+  margin-top: var(--space-2);
+}
+
+.hoja-registro__categorias {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: var(--space-2);
+}
+
+.hoja-registro__categoria {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  min-height: 64px;
+  padding: var(--space-2) 2px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-control);
+  background: var(--surface-2);
+  color: var(--text-2);
+  -webkit-tap-highlight-color: transparent;
+  transition: border-color var(--dur-fast) var(--ease-standard), background var(--dur-fast) var(--ease-standard);
+}
+
+.hoja-registro__categoria--activa {
+  border-color: var(--hoja-color);
+  background: var(--surface-3);
+  color: var(--text);
+  box-shadow: 0 0 0 1px var(--hoja-color) inset;
+}
+
+.hoja-registro__categoria-icono {
+  font-size: 22px;
+  line-height: 28px;
+}
+
+.hoja-registro__categoria-nombre {
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: var(--fs-micro);
+  line-height: var(--lh-micro);
+}
+
+/* ---- Campos ---- */
+.hoja-registro__campos {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-2) var(--space-3);
+  margin-top: var(--space-2);
+}
+
+.hoja-registro__campo {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  min-width: 0;
+}
+
+.hoja-registro__campo--ancho {
+  grid-column: 1 / -1;
+}
+
+.hoja-registro__control {
+  width: 100%;
+  min-height: var(--touch-target);
+  padding: 0 var(--space-3);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-control);
+  background: var(--surface-2);
+  color: var(--text);
+  font-size: 16px; /* evita el zoom automático de iOS */
+}
+
+.hoja-registro__check {
+  flex-direction: row;
+  align-items: center;
+  gap: var(--space-2);
+  min-height: var(--touch-target);
+}
+
+.hoja-registro__check input {
+  width: 22px;
+  height: 22px;
+  accent-color: var(--accent);
+}
+
+/* ---- Pie fijo con Guardar ---- */
+.hoja-registro__pie {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  padding: var(--space-3) var(--space-4) calc(var(--space-3) + var(--safe-bottom));
+  border-top: 1px solid var(--line);
+  background: var(--surface-1);
+}
+
+.hoja-registro__error {
+  color: var(--expense);
+}
+
+.hoja-registro__guardar {
+  min-height: 52px;
+  border-radius: var(--radius-control);
+  background: var(--hoja-color);
+  color: var(--on-accent);
+  font-size: var(--fs-h3);
+  font-weight: 700;
+  transition: transform var(--dur-fast) var(--ease-standard), opacity var(--dur-fast) var(--ease-standard);
+}
+
+.hoja-registro__guardar:active {
+  transform: scale(0.98);
+}
+
+.hoja-registro__guardar:disabled {
+  opacity: 0.7;
+}
+
+/* ---- Aviso "Guardado" ---- */
+.hoja-registro__toast {
+  position: fixed;
+  left: 50%;
+  bottom: calc(var(--tab-bar-height) + var(--safe-bottom) + 84px);
+  z-index: 120;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-2) var(--space-4);
+  border: 1px solid var(--income);
+  border-radius: var(--radius-pill);
+  background: var(--surface-3);
+  color: var(--income);
+  font-weight: 600;
+  transform: translateX(-50%);
+  animation: hoja-toast 2200ms var(--ease-standard) both;
+  pointer-events: none;
+}
+
+@keyframes hoja-toast {
+  0% { opacity: 0; transform: translate(-50%, 12px); }
+  12%, 82% { opacity: 1; transform: translate(-50%, 0); }
+  100% { opacity: 0; transform: translate(-50%, -6px); }
+}
+
+@media (min-width: 768px) {
+  .hoja-registro__fondo {
+    align-items: center;
+  }
+  .hoja-registro {
+    border-bottom: 1px solid var(--line-strong);
+    border-radius: var(--radius-card);
+  }
+  .hoja-registro__toast {
+    bottom: var(--space-7);
+  }
+}

@@ -1,7 +1,7 @@
 .modal-fondo {
   position: fixed;
   inset: 0;
-  background: rgba(0, 0, 0, 0.4);
+  background: var(--scrim);
   display: flex;
   align-items: flex-end;
   justify-content: center;
@@ -22,7 +22,9 @@
   width: 100%;
   max-width: 560px;
   max-height: min(88vh, 720px);
-  background: var(--bg);
+  background: var(--surface-3);
+  border: 1px solid var(--line-strong);
+  border-bottom: none;
   border-radius: var(--radius-card) var(--radius-card) 0 0;
   box-shadow: var(--shadow-modal);
   display: flex;
@@ -51,7 +53,7 @@
   width: 36px;
   height: 5px;
   border-radius: var(--radius-pill);
-  background: var(--separator);
+  background: var(--line-strong);
   margin: var(--space-2) auto 0;
 }
 
@@ -75,9 +77,10 @@
   width: calc(100% - var(--space-8));
   max-width: 360px;
   margin: auto;
-  background: var(--surface);
+  background: var(--surface-3);
+  border: 1px solid var(--line-strong);
   border-radius: var(--radius-card);
-  box-shadow: var(--shadow-card);
+  box-shadow: var(--shadow-modal);
   padding: var(--space-6) var(--space-5) var(--space-5);
   display: flex;
   flex-direction: column;

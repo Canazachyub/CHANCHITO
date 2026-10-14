@@ -34,8 +34,8 @@
   min-height: 36px;
   padding: 0 var(--space-3);
   border-radius: var(--radius-pill);
-  border: 1px solid var(--separator);
-  background: var(--surface);
+  border: 1px solid var(--line);
+  background: var(--surface-2);
   color: var(--text);
   font-size: var(--fs-footnote);
   line-height: var(--lh-footnote);
@@ -65,7 +65,7 @@
   height: 56px;
   border-radius: 50%;
   background: var(--accent);
-  color: var(--surface);
+  color: var(--on-accent);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -76,4 +76,55 @@
 
 .gastos__fab:active {
   transform: scale(0.94);
+}
+
+/* ---------------------------------------------------------------------- */
+/* Web (≥1024px): lista en dos columnas, FAB sin tab bar debajo.            */
+/* ---------------------------------------------------------------------- */
+@media (min-width: 1024px) {
+  .gastos__cabecera {
+    flex-direction: row;
+    align-items: baseline;
+    gap: var(--space-4);
+  }
+
+  .gastos__lista-contenedor {
+    padding: var(--space-3) var(--space-5);
+  }
+
+  .gastos__lista {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    column-gap: var(--space-7);
+  }
+
+  .gastos__fab {
+    right: var(--space-7);
+    bottom: var(--space-7);
+  }
+}
+
+@media (min-width: 768px) and (max-width: 1023.98px) {
+  .gastos__fab {
+    right: var(--space-6);
+    bottom: var(--space-6);
+  }
+}
+
+/* Búsqueda de texto (móvil). En web el filtro no se muestra: la pantalla queda como estaba. */
+.gastos__buscar {
+  width: 100%;
+  min-height: var(--touch-target);
+  padding: 0 var(--space-4);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-pill);
+  background: var(--surface-2);
+  color: var(--text);
+  font-size: 16px;
+}
+
+@media (min-width: 768px) {
+  .gastos__buscar {
+    display: none;
+  }
 }

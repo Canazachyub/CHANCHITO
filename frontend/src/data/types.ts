@@ -21,6 +21,12 @@ export interface Usuario {
   fecha_registro: string;
   ultima_sesion: string;
   activo: boolean;
+  /** Nombre de usuario para entrar con contraseña (CONTRACT § 0.1-bis). Vacío si solo usa Google. */
+  usuario?: string;
+  /** El servidor nunca manda el hash: solo si existe. */
+  tiene_password?: boolean;
+  /** Entró con una contraseña temporal: la app lo obliga a cambiarla antes de seguir. */
+  debe_cambiar_password?: boolean;
 }
 
 export interface Categoria {
@@ -71,6 +77,8 @@ export interface Transaccion {
   eliminado: boolean;
   fecha_creacion: string;
   fecha_modificacion: string;
+  /** A qué trabajador se le pagó (CONTRACT § 4-quater). Vacío o ausente en filas viejas. */
+  id_trabajador?: string;
   /** Solo local, no viaja al servidor. */
   sync_status: SyncStatus;
   /** rev que tenía el registro cuando empezó la edición offline. */
@@ -96,6 +104,16 @@ export interface Deuda {
   rev: number;
   origen: Origen;
   eliminado: boolean;
+  /** Adelanto por descontar (me_deben) o planilla por pagar (debo) de un trabajador. */
+  id_trabajador?: string;
+  /** Cuota de un préstamo bancario (CONTRACT § 4-quinquies). */
+  id_prestamo?: string;
+  nro_cuota?: number;
+  /** Desglose de la cuota: lo que baja la deuda vs. lo que cuesta el préstamo. */
+  capital?: number;
+  interes?: number;
+  /** Seguro de desgravamen, comisiones, portes. */
+  otros?: number;
   sync_status: SyncStatus;
   rev_base?: number;
 }
@@ -215,4 +233,69 @@ export interface ObligacionMensual {
   fecha_creacion: string;
   eliminado: boolean;
   fecha_modificacion: string;
+  /** Si es la planilla de una persona, la deuda que genera cada mes queda a su nombre. */
+  id_trabajador?: string;
+  /** Si genera las cuotas de un préstamo de cuota fija. */
+  id_prestamo?: string;
+}
+
+/** CONTRACT § 4-quater. A quién se le paga; no es un usuario de la app. */
+export type TipoVinculo = 'planilla' | 'honorarios';
+
+export interface Trabajador {
+  id_trabajador: string;
+  id_espacio: string;
+  nombre: string;
+  documento: string;
+  tipo_vinculo: TipoVinculo;
+  cargo: string;
+  /** Contrato u obra al que está asignado (ej. 'CP-026'). */
+  proyecto: string;
+  /** En honorarios por jornada es referencial. */
+  sueldo_base: number;
+  /** 'ONP', 'AFP Integra'... Vacío si no se sabe. */
+  pension: string;
+  /** 'yyyy-MM-dd' o '' si no hay dato. */
+  fecha_ingreso: string;
+  /** Fin del contrato o del tramo vigente. '' = indefinido. */
+  fecha_fin: string;
+  /** Si además usa la app. Vacío si no. */
+  id_usuario: string;
+  activo: boolean;
+  notas: string;
+  fecha_creacion: string;
+  fecha_modificacion: string;
+}
+
+/** CONTRACT § 4-quinquies. Las cuotas viven como Deudas con `id_prestamo`. */
+export type TipoPrestamo = 'prestamo' | 'tarjeta' | 'leasing' | 'otro';
+
+export interface Prestamo {
+  id_prestamo: string;
+  id_espacio: string;
+  /** Banco o financiera. */
+  entidad: string;
+  tipo: TipoPrestamo;
+  descripcion: string;
+  monto: number;
+  /** TEA en porcentaje. */
+  tea: number;
+  plazo: number;
+  dia_pago: number;
+  fecha_desembolso: string;
+  /** Cuenta de la que sale el pago de las cuotas. */
+  id_cuenta: string;
+  activo: boolean;
+  notas: string;
+  fecha_creacion: string;
+  fecha_modificacion: string;
+  /**
+   * 'cronograma': se conocen monto, plazo y TEA (cuotas creadas de antemano).
+   * 'cuota_fija': solo se sabe la cuota y el día; cada mes se genera la siguiente hasta finalizarlo.
+   * Ausente en filas viejas = 'cronograma'.
+   */
+  modalidad?: 'cronograma' | 'cuota_fija';
+  cuota_mensual?: number;
+  /** Fecha en que se finalizó (último pago). Vacío mientras está vigente. */
+  fecha_fin?: string;
 }

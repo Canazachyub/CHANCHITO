@@ -1,6 +1,7 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, type FormEvent } from 'react';
+import loginHero from '../assets/login.webp';
 import type { Sesion } from '../data/types';
-import { iniciarSesion } from '../data/api';
+import { iniciarSesion, iniciarSesionConPassword } from '../data/api';
 import './Login.css';
 
 interface LoginProps {
@@ -71,17 +72,69 @@ function esUsuarioNoAutorizado(err: unknown): boolean {
   return mensaje.includes('USUARIO_NO_AUTORIZADO');
 }
 
-export default function Login({ onEntrar }: LoginProps) {
-  const [estado, setEstado] = useState<EstadoLogin>('cargando_script');
-  const contenedorBoton = useRef<HTMLDivElement>(null);
-  const clientId = import.meta.env.VITE_GOOGLE_CLIENT_ID as string | undefined;
+/** Código normativo del backend (CONTRACT § 3) por duck-typing, igual que arriba. */
+function codigoDe(err: unknown): string | undefined {
+  if (err && typeof err === 'object' && 'codigo' in err) return String((err as { codigo?: unknown }).codigo);
+  return undefined;
+}
 
-  useEffect(() => {
-    if (!clientId) {
-      setEstado('error');
+function mensajeLoginPassword(err: unknown): string {
+  const codigo = codigoDe(err);
+  if (codigo === 'SIN_CONFIGURAR') return 'Esta versión de la app no tiene configurado el servidor. Avísale al administrador.';
+  if (codigo === 'CREDENCIALES_INVALIDAS') return 'Usuario o contraseña incorrectos';
+  if (codigo === 'CUENTA_BLOQUEADA') {
+    return (err as { detalle?: string }).detalle || 'Cuenta bloqueada temporalmente. Intenta más tarde.';
+  }
+  // Sin código del servidor: fetch falló (TypeError) o no hay red.
+  if (!codigo || err instanceof TypeError || !navigator.onLine) {
+    return 'Sin conexión: para entrar la primera vez necesitas internet';
+  }
+  return 'No se pudo iniciar sesión. Intenta de nuevo.';
+}
+
+const OJO_ABIERTO = (
+  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+    <path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12Z" stroke="currentColor" strokeWidth="2" strokeLinejoin="round" />
+    <circle cx="12" cy="12" r="3" stroke="currentColor" strokeWidth="2" />
+  </svg>
+);
+const OJO_CERRADO = (
+  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+    <path d="M3 3l18 18M10.6 5.1A9.6 9.6 0 0 1 12 5c6.4 0 10 7 10 7a17 17 0 0 1-3.2 4M6.5 6.6C3.7 8.4 2 12 2 12s3.6 7 10 7c1.6 0 3-.4 4.2-1M9.9 9.9a3 3 0 0 0 4.2 4.2" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+  </svg>
+);
+
+export default function Login({ onEntrar }: LoginProps) {
+  const clientId = import.meta.env.VITE_GOOGLE_CLIENT_ID as string | undefined;
+  const [estado, setEstado] = useState<EstadoLogin>(clientId ? 'cargando_script' : 'inactivo');
+  const contenedorBoton = useRef<HTMLDivElement>(null);
+
+  const [usuario, setUsuario] = useState('');
+  const [password, setPassword] = useState('');
+  const [verPassword, setVerPassword] = useState(false);
+  const [entrando, setEntrando] = useState(false);
+  const [errorPassword, setErrorPassword] = useState<string | undefined>();
+
+  async function entrarConPassword(e: FormEvent) {
+    e.preventDefault();
+    if (entrando) return;
+    if (!usuario.trim() || !password) {
+      setErrorPassword('Escribe tu usuario y tu contraseña');
       return;
     }
+    setEntrando(true);
+    setErrorPassword(undefined);
+    try {
+      const sesion = await iniciarSesionConPassword(usuario, password);
+      onEntrar(sesion);
+    } catch (err) {
+      setErrorPassword(mensajeLoginPassword(err));
+      setEntrando(false);
+    }
+  }
 
+  useEffect(() => {
+    if (!clientId) return;
     let cancelado = false;
 
     async function manejarCredencial(respuesta: CredencialGoogle) {
@@ -123,34 +176,93 @@ export default function Login({ onEntrar }: LoginProps) {
   return (
     <div className="login">
       <div className="login__contenido">
-        <div className="login__logo" aria-hidden="true">🐷</div>
+        <img className="login__hero" src={loginHero} alt="" aria-hidden="true" width={220} height={290} />
         <h1 className="u-large-title login__titulo">Chanchito</h1>
         <p className="u-body login__subtitulo">Tu billetera compartida, siempre a mano.</p>
 
-        <div className="login__accion">
-          {estado === 'no_autorizado' && (
-            <p className="u-callout login__mensaje login__mensaje--error" role="alert">
-              Tu cuenta no está dada de alta. Pídele acceso al administrador.
-            </p>
-          )}
-          {estado === 'error' && (
-            <p className="u-callout login__mensaje login__mensaje--error" role="alert">
-              No se pudo iniciar sesión. Revisa tu conexión e intenta de nuevo.
-            </p>
-          )}
-          {estado === 'autenticando' && (
-            <p className="u-callout login__mensaje" role="status">Entrando…</p>
+        <form className="login__form" onSubmit={entrarConPassword} noValidate>
+          <label className="login__campo">
+            <span className="u-subhead">Usuario</span>
+            <input
+              className="login__input"
+              type="text"
+              name="usuario"
+              value={usuario}
+              onChange={(e) => { setUsuario(e.target.value); setErrorPassword(undefined); }}
+              autoComplete="username"
+              autoCapitalize="off"
+              autoCorrect="off"
+              spellCheck={false}
+              inputMode="text"
+              placeholder="ej. darwin"
+              disabled={entrando}
+            />
+          </label>
+          <label className="login__campo">
+            <span className="u-subhead">Contraseña</span>
+            <span className="login__password">
+              <input
+                className="login__input"
+                type={verPassword ? 'text' : 'password'}
+                name="password"
+                value={password}
+                onChange={(e) => { setPassword(e.target.value); setErrorPassword(undefined); }}
+                autoComplete="current-password"
+                autoCapitalize="off"
+                autoCorrect="off"
+                spellCheck={false}
+                placeholder="Tu contraseña"
+                disabled={entrando}
+              />
+              <button
+                type="button"
+                className="login__ojo"
+                onClick={() => setVerPassword((v) => !v)}
+                aria-label={verPassword ? 'Ocultar contraseña' : 'Mostrar contraseña'}
+                aria-pressed={verPassword}
+              >
+                {verPassword ? OJO_CERRADO : OJO_ABIERTO}
+              </button>
+            </span>
+          </label>
+
+          {errorPassword && (
+            <p className="u-callout login__mensaje login__mensaje--error" role="alert">{errorPassword}</p>
           )}
 
-          <div className="login__boton-envoltorio">
-            {/* Google renderiza su propio botón acá adentro; se mantiene montado
-                siempre para no perder la referencia del contenedor. */}
-            <div ref={contenedorBoton} className="login__boton-google" />
-            {estado === 'cargando_script' && (
-              <div className="u-skeleton login__boton-esqueleto" aria-hidden="true" />
+          <button type="submit" className="login__entrar" disabled={entrando}>
+            {entrando ? 'Entrando…' : 'Entrar'}
+          </button>
+        </form>
+
+        {clientId && (
+          <div className="login__accion">
+            <p className="u-footnote login__separador"><span>o entra con Google</span></p>
+
+            {estado === 'no_autorizado' && (
+              <p className="u-callout login__mensaje login__mensaje--error" role="alert">
+                Tu cuenta no está dada de alta. Pídele acceso al administrador.
+              </p>
             )}
+            {estado === 'error' && (
+              <p className="u-callout login__mensaje login__mensaje--error" role="alert">
+                No se pudo iniciar sesión con Google. Revisa tu conexión e intenta de nuevo.
+              </p>
+            )}
+            {estado === 'autenticando' && (
+              <p className="u-callout login__mensaje" role="status">Entrando…</p>
+            )}
+
+            <div className="login__boton-envoltorio">
+              {/* Google renderiza su propio botón acá adentro; se mantiene montado
+                  siempre para no perder la referencia del contenedor. */}
+              <div ref={contenedorBoton} className="login__boton-google" />
+              {estado === 'cargando_script' && (
+                <div className="u-skeleton login__boton-esqueleto" aria-hidden="true" />
+              )}
+            </div>
           </div>
-        </div>
+        )}
       </div>
     </div>
   );

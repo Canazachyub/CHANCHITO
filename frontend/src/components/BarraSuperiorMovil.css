@@ -1,0 +1,65 @@
+/* Barra superior del móvil (DESIGN § 8.1). En ≥768px no existe: el selector vive en la barra lateral. */
+
+.barra-superior {
+  position: sticky;
+  top: 0;
+  z-index: 30;
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: calc(var(--space-2) + var(--safe-top)) var(--space-3) var(--space-2);
+  background: var(--surface-translucent);
+  backdrop-filter: blur(20px) saturate(160%);
+  -webkit-backdrop-filter: blur(20px) saturate(160%);
+  border-bottom: 1px solid var(--line);
+}
+
+.barra-superior__logo {
+  display: inline-flex;
+  flex-shrink: 0;
+  color: var(--accent);
+}
+
+.barra-superior__espacio {
+  flex: 1;
+  min-width: 0;
+}
+
+.barra-superior__boton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: var(--touch-target);
+  height: var(--touch-target);
+  border-radius: var(--radius-pill);
+  color: var(--text);
+  -webkit-tap-highlight-color: transparent;
+}
+
+.barra-superior__boton:active {
+  background: var(--surface-2);
+}
+
+.barra-superior__campana {
+  position: relative;
+  display: inline-flex;
+}
+
+/* El selector de libro de cada pantalla sobra en el móvil: ya está en la barra superior. */
+@media (max-width: 767.98px) {
+  .shell .selector-espacio-wrap {
+    display: none;
+  }
+
+  /* La barra superior es sticky y ya cubre la zona segura: se quita el relleno superior de la pantalla. */
+  .shell > .app-scroll {
+    padding-top: var(--space-3);
+  }
+}
+
+@media (min-width: 768px) {
+  .barra-superior {
+    display: none;
+  }
+}

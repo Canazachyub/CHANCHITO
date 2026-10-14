@@ -9,7 +9,7 @@
  * funciones que se llaman en tiempo de ejecución, cuando ambos módulos ya terminaron de cargar.
  */
 import type { Sesion } from '../data/types';
-import { login } from '../data/cliente';
+import { cambiarPasswordRemoto, login, loginPassword, type DatosLogin } from '../data/cliente';
 import { db } from './db';
 
 const CLAVE = 'actual' as const;
@@ -47,7 +47,27 @@ export function onSesionChange(cb: (s: Sesion | null) => void): () => void {
 }
 
 export async function iniciarSesion(idTokenGoogle: string): Promise<Sesion> {
-  const datos = await login(idTokenGoogle);
+  return guardarSesion(await login(idTokenGoogle));
+}
+
+/** CONTRACT § 0.1-bis: usuario y contraseña propios, sin depender de Google. */
+export async function iniciarSesionConPassword(usuario: string, password: string): Promise<Sesion> {
+  return guardarSesion(await loginPassword(usuario.trim().toLowerCase(), password));
+}
+
+/** Tras cambiarla, la sesión sigue: solo se actualiza el usuario (ya sin debe_cambiar_password). */
+export async function cambiarPassword(actual: string, nueva: string): Promise<Sesion> {
+  const fila = await db.sesion.get(CLAVE);
+  if (!fila) throw new Error('No hay sesión activa');
+  const usuario = await cambiarPasswordRemoto(actual, nueva);
+  const sesion: Sesion = { ...fila.valor, usuario };
+  await db.sesion.put({ clave: CLAVE, valor: sesion });
+  await db.usuarios.put(usuario);
+  notificar(sesion);
+  return sesion;
+}
+
+async function guardarSesion(datos: DatosLogin): Promise<Sesion> {
   const sesion: Sesion = { usuario: datos.usuario, token_sesion: datos.token_sesion, expira: datos.expira };
   await db.sesion.put({ clave: CLAVE, valor: sesion });
   // Se guarda también en la tabla de usuarios para que useUsuarios() tenga al menos a quien

@@ -19,6 +19,8 @@ import type {
   Presupuesto,
   SolicitudDinero,
   Transaccion,
+  Trabajador,
+  Prestamo,
   Usuario,
 } from './types';
 import { cerrarSesion, getSesion } from '../offline/sesion';
@@ -50,7 +52,9 @@ interface RespuestaError {
 type RespuestaApi<T> = RespuestaExito<T> | RespuestaError;
 
 function construirUrl(action: string, extra?: Record<string, string>): string {
-  if (!API_URL) throw new Error('VITE_API_URL no está configurada (ver frontend/.env.example)');
+  // Error propio y no genérico: sin esto la pantalla de login decía "sin conexión" en un
+  // celular con internet, cuando lo que falta es configurar el build (docs/DESPLIEGUE.md § 9).
+  if (!API_URL) throw new ErrorApi('SIN_CONFIGURAR', 'VITE_API_URL no está configurada (ver frontend/.env.example)');
   const url = new URL(API_URL);
   url.searchParams.set('action', action);
   url.searchParams.set('token', SHARED_TOKEN ?? '');
@@ -124,6 +128,20 @@ export async function login(idTokenGoogle: string): Promise<DatosLogin> {
   return postAction<DatosLogin>('login', { id_token: idTokenGoogle }, false);
 }
 
+/** CONTRACT § 0.1-bis. Errores: CREDENCIALES_INVALIDAS, CUENTA_BLOQUEADA. */
+export async function loginPassword(usuario: string, password: string): Promise<DatosLogin> {
+  return postAction<DatosLogin>('loginPassword', { usuario, password }, false);
+}
+
+export async function cambiarPasswordRemoto(actual: string, nueva: string): Promise<Usuario> {
+  return (await postAction<{ usuario: Usuario }>('cambiarPassword', { actual, nueva })).usuario;
+}
+
+/** Solo propietario. Devuelve la contraseña temporal UNA vez: hay que mostrarla y no guardarla. */
+export async function restablecerPasswordRemoto(idUsuario: string): Promise<string> {
+  return (await postAction<{ password_temporal: string }>('restablecerPassword', { id_usuario: idUsuario })).password_temporal;
+}
+
 // ---------------------------------------------------------------------------------------------
 // Sincronización (CONTRACT § 4)
 
@@ -154,6 +172,9 @@ export interface CambiosServidor {
   categorias: Categoria[];
   cuentas: Cuenta[];
   usuarios: Usuario[];
+  /** Opcional: un backend anterior a CONTRACT § 4-quater no lo manda. */
+  trabajadores?: Trabajador[];
+  prestamos?: Prestamo[];
 }
 
 export interface RespuestaSincronizar {
@@ -186,8 +207,18 @@ export async function sincronizar(
 // encolarse offline; se asume que no, dado que ni siquiera están en `cambios` como algo que
 // el cliente pueda "proponer" — solo recibirlas ya confirmadas.
 
-export async function crearUsuarioRemoto(u: { nombre: string; email: string }): Promise<Usuario> {
-  return postAction<Usuario>('crearUsuario', u);
+export interface NuevoUsuarioRemoto {
+  nombre: string;
+  /** Para entrar con contraseña. */
+  usuario?: string;
+  /** Para entrar con Google. Al menos uno de los dos. */
+  email?: string;
+  rol_global?: 'propietario' | 'miembro';
+}
+
+/** Con `usuario`, el servidor genera una contraseña temporal y la devuelve solo esta vez. */
+export async function crearUsuarioRemoto(u: NuevoUsuarioRemoto): Promise<{ usuario: Usuario; password_temporal?: string }> {
+  return postAction<{ usuario: Usuario; password_temporal?: string }>('crearUsuario', u);
 }
 
 export async function desactivarUsuarioRemoto(idUsuario: string): Promise<void> {
@@ -199,7 +230,7 @@ export async function desactivarUsuarioRemoto(idUsuario: string): Promise<void> 
 // Administración y no está en el alcance de esta entrega.
 
 export async function getEspaciosRemoto(): Promise<Espacio[]> {
-  return getAction<Espacio[]>('getEspacios');
+  return (await getAction<{ espacios: Espacio[] }>('getEspacios')).espacios;
 }
 
 // ---------------------------------------------------------------------------------------------
@@ -209,7 +240,7 @@ export async function getEspaciosRemoto(): Promise<Espacio[]> {
 export async function getSolicitudesRemoto(idEspacio: string, estado?: EstadoSolicitud): Promise<SolicitudDinero[]> {
   const params: Record<string, string> = { id_espacio: idEspacio };
   if (estado) params.estado = estado;
-  return getAction<SolicitudDinero[]>('getSolicitudes', params);
+  return (await getAction<{ solicitudes: SolicitudDinero[] }>('getSolicitudes', params)).solicitudes;
 }
 
 export interface PayloadCrearSolicitud {
@@ -221,7 +252,7 @@ export interface PayloadCrearSolicitud {
 }
 
 export async function crearSolicitudRemota(p: PayloadCrearSolicitud): Promise<SolicitudDinero> {
-  return postAction<SolicitudDinero>('crearSolicitud', p);
+  return (await postAction<{ solicitud: SolicitudDinero }>('crearSolicitud', p)).solicitud;
 }
 
 /** Solo propietario (CONTRACT § 4-bis, § 6). Aprobar crea de una vez la transacción de gasto. */
@@ -230,18 +261,19 @@ export async function responderSolicitudRemota(
   aprobar: boolean,
   motivo?: string,
 ): Promise<SolicitudDinero> {
-  return postAction<SolicitudDinero>('responderSolicitud', {
+  const datos = await postAction<{ solicitud: SolicitudDinero }>('responderSolicitud', {
     id_solicitud: idSolicitud,
     aprobar,
     motivo: motivo ?? '',
   });
+  return datos.solicitud;
 }
 
 // ---------------------------------------------------------------------------------------------
 // Obligaciones mensuales (CONTRACT § 4-ter). Igual que Solicitudes: exigen conexión, sin cola.
 
 export async function getObligacionesRemoto(idEspacio: string): Promise<ObligacionMensual[]> {
-  return getAction<ObligacionMensual[]>('getObligaciones', { id_espacio: idEspacio });
+  return (await getAction<{ obligaciones: ObligacionMensual[] }>('getObligaciones', { id_espacio: idEspacio })).obligaciones;
 }
 
 export interface PayloadCrearObligacion {
@@ -256,17 +288,58 @@ export interface PayloadCrearObligacion {
 
 /** Las tres de escritura son solo para el propietario (CONTRACT § 4-ter). */
 export async function crearObligacionRemota(p: PayloadCrearObligacion): Promise<ObligacionMensual> {
-  return postAction<ObligacionMensual>('crearObligacion', p);
+  return (await postAction<{ obligacion: ObligacionMensual }>('crearObligacion', p)).obligacion;
 }
 
 export async function actualizarObligacionRemota(
   id: string,
   cambios: Partial<ObligacionMensual>,
 ): Promise<ObligacionMensual> {
-  return postAction<ObligacionMensual>('actualizarObligacion', { id_obligacion: id, ...cambios });
+  return (await postAction<{ obligacion: ObligacionMensual }>('actualizarObligacion', { id_obligacion: id, ...cambios })).obligacion;
 }
 
 /** Baja lógica: `activo = false` (CONTRACT § 4-ter), deja intactas las deudas ya generadas. */
 export async function eliminarObligacionRemota(id: string): Promise<void> {
   await postAction<void>('eliminarObligacion', { id_obligacion: id });
+}
+
+// ---------------------------------------------------------------------------------------------
+// Trabajadores (CONTRACT § 4-quater). Escritura solo del propietario y con conexión, igual que
+// Obligaciones. La lectura no tiene GET propio: llegan en `cambios` de cada sincronización.
+
+export type PayloadTrabajador = Partial<Omit<Trabajador, 'id_trabajador' | 'fecha_creacion' | 'fecha_modificacion'>>;
+
+export async function crearTrabajadorRemoto(p: PayloadTrabajador & { id_espacio: string }): Promise<Trabajador> {
+  return (await postAction<{ trabajador: Trabajador }>('crearTrabajador', p)).trabajador;
+}
+
+export async function actualizarTrabajadorRemoto(id: string, cambios: PayloadTrabajador): Promise<Trabajador> {
+  return (await postAction<{ trabajador: Trabajador }>('actualizarTrabajador', { id_trabajador: id, ...cambios })).trabajador;
+}
+
+export async function darDeBajaTrabajadorRemoto(id: string): Promise<Trabajador> {
+  return (await postAction<{ trabajador: Trabajador }>('darDeBajaTrabajador', { id_trabajador: id })).trabajador;
+}
+
+export async function actualizarCuentaRemota(id: string, cambios: { saldo_inicial?: number; nombre?: string }): Promise<void> {
+  await postAction<{ id_cuenta: string }>('actualizarCuenta', { id_cuenta: id, ...cambios });
+}
+
+// ---------------------------------------------------------------------------------------------
+// Préstamos (CONTRACT § 4-quinquies). Solo la cabecera viaja por acá; las cuotas son deudas y
+// van por `sincronizar` como cualquier otra.
+
+export async function crearPrestamoRemoto(
+  p: Omit<Prestamo, 'activo' | 'fecha_creacion' | 'fecha_modificacion'> & { periodo_generado?: string },
+): Promise<Prestamo> {
+  return (await postAction<{ prestamo: Prestamo }>('crearPrestamo', p)).prestamo;
+}
+
+/** "Ese fue el último pago": cierra el préstamo y anula las cuotas futuras aún abiertas. */
+export async function finalizarPrestamoRemoto(id: string): Promise<Prestamo> {
+  return (await postAction<{ prestamo: Prestamo }>('finalizarPrestamo', { id_prestamo: id })).prestamo;
+}
+
+export async function actualizarPrestamoRemoto(id: string, cambios: Partial<Prestamo>): Promise<Prestamo> {
+  return (await postAction<{ prestamo: Prestamo }>('actualizarPrestamo', { id_prestamo: id, ...cambios })).prestamo;
 }

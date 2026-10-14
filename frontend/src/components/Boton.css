@@ -38,17 +38,18 @@
 
 .boton--primario {
   background: var(--accent);
-  color: var(--surface);
+  color: var(--on-accent);
 }
 
 .boton--secundario {
-  background: var(--accent-12);
-  color: var(--accent);
+  background: var(--surface-2);
+  border: 1px solid var(--line-strong);
+  color: var(--text);
 }
 
 .boton--peligro {
-  background: var(--expense-12);
-  color: var(--expense);
+  background: var(--expense);
+  color: var(--on-accent);
 }
 
 .boton--fantasma {
@@ -78,7 +79,7 @@
 }
 
 .boton-icono--secundario {
-  background: var(--text-04);
+  background: var(--surface-2);
   color: var(--text);
 }
 
@@ -89,6 +90,6 @@
 
 .boton-icono--primario {
   background: var(--accent);
-  color: var(--surface);
+  color: var(--on-accent);
   box-shadow: var(--shadow-fab);
 }

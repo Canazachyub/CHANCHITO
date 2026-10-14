@@ -1,0 +1,334 @@
+/* Barra lateral (DESIGN § 8.2–8.3). Oculta en móvil: allí manda la tab bar inferior. */
+.barra-lateral {
+  display: none;
+}
+
+@media (min-width: 768px) {
+  .barra-lateral {
+    position: fixed;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    z-index: 40;
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-4);
+    width: 72px;
+    padding: var(--space-4) var(--space-2);
+    background: var(--surface-1);
+    border-right: 1px solid var(--line);
+    overflow-y: auto;
+  }
+}
+
+@media (min-width: 1024px) {
+  .barra-lateral {
+    width: 240px;
+    padding: var(--space-5) var(--space-3);
+    transition: width var(--dur-medium) var(--ease-standard);
+  }
+
+  .barra-lateral--colapsada {
+    width: 72px;
+    padding: var(--space-4) var(--space-2);
+  }
+}
+
+.barra-lateral__marca {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: 0 var(--space-2);
+  color: var(--accent);
+}
+
+.barra-lateral__logo {
+  flex-shrink: 0;
+  display: flex;
+}
+
+.barra-lateral__nombre {
+  font-family: var(--font-display);
+  font-size: var(--fs-h2);
+  line-height: var(--lh-h2);
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  color: var(--accent);
+}
+
+.barra-lateral__nav {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.barra-lateral__item {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  min-height: 44px;
+  padding: 0 var(--space-3);
+  border-radius: var(--radius-control);
+  color: var(--text-secondary);
+  font-size: var(--fs-body);
+  font-weight: 500;
+  text-align: left;
+  transition: background var(--dur-fast) var(--ease-standard), color var(--dur-fast) var(--ease-standard);
+}
+
+.barra-lateral__item svg {
+  flex-shrink: 0;
+}
+
+.barra-lateral__item:hover {
+  background: var(--text-04);
+  color: var(--text);
+}
+
+.barra-lateral__item--activo,
+.barra-lateral__item--activo:hover {
+  background: var(--accent-12);
+  color: var(--accent);
+  font-weight: 600;
+}
+
+/* Barra de acento a la izquierda del ítem activo. */
+.barra-lateral__item--activo::before {
+  content: '';
+  position: absolute;
+  left: calc(-1 * var(--space-3));
+  top: 6px;
+  bottom: 6px;
+  width: 3px;
+  border-radius: 0 3px 3px 0;
+  background: var(--accent);
+}
+
+.barra-lateral__pie {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  padding-top: var(--space-3);
+  border-top: 1px solid var(--line);
+}
+
+.barra-lateral__sync {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: 0 var(--space-3);
+  font-size: var(--fs-caption);
+  line-height: var(--lh-caption);
+  color: var(--text-secondary);
+}
+
+.barra-lateral__punto {
+  flex-shrink: 0;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+}
+
+.barra-lateral__punto--ok {
+  background: var(--income);
+}
+
+.barra-lateral__punto--sync {
+  background: var(--warning);
+}
+
+.barra-lateral__punto--offline {
+  background: var(--expense);
+}
+
+.barra-lateral__usuario {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: 0 var(--space-2);
+  min-width: 0;
+}
+
+.barra-lateral__avatar {
+  flex-shrink: 0;
+  width: 32px;
+  height: 32px;
+  border-radius: var(--radius-pill);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--accent-12);
+  color: var(--accent);
+  font-size: var(--fs-small);
+  font-weight: 700;
+}
+
+.barra-lateral__usuario-datos {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.barra-lateral__usuario-nombre {
+  font-size: var(--fs-small);
+  line-height: var(--lh-small);
+  font-weight: 600;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.barra-lateral__usuario-rol {
+  font-size: var(--fs-caption);
+  line-height: var(--lh-caption);
+  color: var(--text-secondary);
+}
+
+.barra-lateral__colapsar {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  min-height: 36px;
+  padding: 0 var(--space-3);
+  border-radius: var(--radius-control);
+  color: var(--text-secondary);
+  font-size: var(--fs-small);
+}
+
+.barra-lateral__colapsar:hover {
+  background: var(--text-04);
+  color: var(--text);
+}
+
+/* Selector de apariencia: segmentado en la barra ancha, un botón en el riel. */
+.barra-lateral__tema .selector-tema__opcion {
+  flex-direction: column;
+  gap: 2px;
+  min-height: 46px;
+  font-size: var(--fs-caption);
+}
+
+.barra-lateral__tema .selector-tema-compacto {
+  width: 100%;
+}
+
+/* ---------------------------------------------------------------------- */
+/* Riel de 72px: solo íconos (tablet siempre; web cuando está colapsada).  */
+/* ---------------------------------------------------------------------- */
+
+/* Tablet: el riel es fijo, no hay nada que colapsar. */
+@media (min-width: 768px) and (max-width: 1023.98px) {
+  .barra-lateral__colapsar {
+    display: none;
+  }
+
+  .barra-lateral__tema .selector-tema {
+    display: none;
+  }
+
+  .barra-lateral__tema .selector-tema-compacto {
+    display: flex;
+  }
+
+  .barra-lateral__nombre,
+  .barra-lateral__etiqueta,
+  .barra-lateral__texto-pie {
+    display: none;
+  }
+
+  .barra-lateral__marca,
+  .barra-lateral__sync,
+  .barra-lateral__usuario {
+    justify-content: center;
+    padding: 0;
+  }
+
+  .barra-lateral__item {
+    justify-content: center;
+    padding: 0;
+  }
+
+  .barra-lateral__item--activo::before {
+    left: calc(-1 * var(--space-2));
+  }
+
+  .barra-lateral .selector-espacio {
+    flex-direction: column;
+  }
+
+  .barra-lateral .selector-espacio__opcion {
+    font-size: 0;
+    min-height: 40px;
+  }
+
+  .barra-lateral .selector-espacio__opcion > span {
+    font-size: var(--fs-h3);
+  }
+}
+
+@media (min-width: 1024px) {
+  .barra-lateral--colapsada .barra-lateral__tema .selector-tema {
+    display: none;
+  }
+
+  .barra-lateral--colapsada .barra-lateral__tema .selector-tema-compacto {
+    display: flex;
+  }
+
+  .barra-lateral--colapsada .barra-lateral__nombre,
+  .barra-lateral--colapsada .barra-lateral__etiqueta,
+  .barra-lateral--colapsada .barra-lateral__texto-pie {
+    display: none;
+  }
+
+  .barra-lateral--colapsada .barra-lateral__marca,
+  .barra-lateral--colapsada .barra-lateral__sync,
+  .barra-lateral--colapsada .barra-lateral__usuario,
+  .barra-lateral--colapsada .barra-lateral__colapsar,
+  .barra-lateral--colapsada .barra-lateral__item {
+    justify-content: center;
+    padding: 0;
+  }
+
+  .barra-lateral--colapsada .barra-lateral__item--activo::before {
+    left: calc(-1 * var(--space-2));
+  }
+
+  .barra-lateral--colapsada .selector-espacio {
+    flex-direction: column;
+  }
+
+  .barra-lateral--colapsada .selector-espacio__opcion {
+    font-size: 0;
+    min-height: 40px;
+  }
+
+  .barra-lateral--colapsada .selector-espacio__opcion > span {
+    font-size: var(--fs-h3);
+  }
+}
+
+.barra-lateral__insignia {
+  margin-left: auto;
+}
+
+/* Riel de íconos (tablet o colapsada): la insignia pasa a ser un punto sobre el ícono. */
+@media (min-width: 768px) and (max-width: 1023px) {
+  .barra-lateral__insignia {
+    position: absolute;
+    top: 4px;
+    right: 8px;
+    margin: 0;
+  }
+}
+
+@media (min-width: 1024px) {
+  .barra-lateral--colapsada .barra-lateral__insignia {
+    position: absolute;
+    top: 4px;
+    right: 8px;
+    margin: 0;
+  }
+}

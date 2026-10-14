@@ -1,0 +1,326 @@
+.prestamos {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.prestamos__cabecera {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+}
+
+.prestamos__lista {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.prestamos__tarjeta {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  min-width: 0;
+}
+
+.prestamos__fila-superior {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--space-2);
+}
+
+.prestamos__badges {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: var(--space-1);
+}
+
+.prestamos__badge {
+  flex-shrink: 0;
+  padding: var(--space-1) var(--space-2);
+  border-radius: var(--radius-pill);
+  font-size: var(--fs-caption);
+  line-height: var(--lh-caption);
+  font-weight: 600;
+  background: var(--text-08);
+  color: var(--text-secondary);
+}
+
+.prestamos__badge--vencida {
+  background: var(--expense);
+  color: var(--on-accent);
+}
+
+.prestamos__progreso {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.prestamos__barra {
+  height: 8px;
+  border-radius: var(--radius-pill);
+  background: var(--surface-3);
+  overflow: hidden;
+}
+
+.prestamos__barra-relleno {
+  height: 100%;
+  background: var(--filo);
+  border-radius: var(--radius-pill);
+  transition: width var(--dur-medium) var(--ease-standard);
+}
+
+.prestamos__cifras {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: var(--space-3);
+}
+
+.prestamos__rotulo {
+  font-size: var(--fs-micro);
+  line-height: var(--lh-micro);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--text-3);
+}
+
+.prestamos__saldo {
+  font-size: var(--fs-h1);
+  line-height: var(--lh-h1);
+  letter-spacing: -0.02em;
+}
+
+.prestamos__interes {
+  color: var(--warning);
+}
+
+.prestamos__prox {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: var(--space-3);
+  padding: var(--space-3);
+  border-radius: var(--radius-control);
+  background: var(--surface-2);
+  border: 1px solid var(--line);
+}
+
+.prestamos__prox--urgente {
+  border-color: var(--warning-18);
+  background: var(--warning-08);
+}
+
+.prestamos__prox--urgente .prestamos__prox-dias {
+  color: var(--warning);
+}
+
+.prestamos__prox--vencida {
+  border-color: var(--expense-18);
+  background: var(--expense-08);
+}
+
+.prestamos__prox--vencida .prestamos__prox-dias {
+  color: var(--expense);
+}
+
+.prestamos__toggle {
+  align-self: flex-start;
+  min-height: 36px;
+  font-size: var(--fs-subhead);
+  font-weight: 600;
+  color: var(--accent);
+}
+
+/* ---- Tablas (cronograma y vista previa) ---- */
+.prestamos__tabla-wrap {
+  overflow-x: auto;
+  margin: 0 calc(var(--space-2) * -1);
+  padding: 0 var(--space-2);
+  -webkit-overflow-scrolling: touch;
+}
+
+.prestamos__tabla {
+  width: 100%;
+  min-width: 640px;
+  border-collapse: collapse;
+  font-size: var(--fs-small);
+}
+
+.prestamos__tabla th {
+  padding: var(--space-2);
+  text-align: left;
+  font-size: var(--fs-micro);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--text-3);
+  border-bottom: 1px solid var(--line-strong);
+  white-space: nowrap;
+}
+
+.prestamos__tabla td {
+  padding: var(--space-2);
+  border-bottom: 1px solid var(--line);
+  white-space: nowrap;
+}
+
+.prestamos__tabla .prestamos__der {
+  text-align: right;
+}
+
+.prestamos__fila--pagada {
+  opacity: 0.5;
+}
+
+.prestamos__ya {
+  font-family: var(--font-ui);
+  font-size: var(--fs-micro);
+  color: var(--text-3);
+}
+
+.prestamos__acciones {
+  display: flex;
+  gap: var(--space-1);
+}
+
+.prestamos__estado {
+  padding: 2px var(--space-2);
+  border-radius: var(--radius-pill);
+  font-size: var(--fs-caption);
+  font-weight: 600;
+}
+
+.prestamos__estado--pagada {
+  background: var(--income-12);
+  color: var(--income);
+}
+
+.prestamos__estado--vencida {
+  background: var(--expense);
+  color: var(--on-accent);
+}
+
+.prestamos__estado--porvencer {
+  background: var(--warning-12);
+  color: var(--warning);
+}
+
+.prestamos__estado--pendiente {
+  background: var(--text-08);
+  color: var(--text-secondary);
+}
+
+.prestamos__mini {
+  min-height: 36px;
+  padding: 0 var(--space-2);
+  font-size: var(--fs-small);
+  width: 138px;
+}
+
+.prestamos__mini--monto {
+  width: 92px;
+  text-align: right;
+}
+
+/* ---- Asistente ---- */
+.prestamos__dos {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-3);
+}
+
+.prestamos__paso {
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--text-3);
+}
+
+.prestamos__nota {
+  padding: var(--space-3);
+  border-radius: var(--radius-control);
+  background: var(--warning-08);
+  border: 1px solid var(--warning-18);
+}
+
+.prestamos__totales {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  padding: var(--space-3);
+  border-radius: var(--radius-control);
+  background: var(--surface-2);
+}
+
+.prestamos__ok {
+  color: var(--income);
+}
+
+.prestamos__aviso,
+.prestamos__error {
+  color: var(--expense);
+}
+
+.prestamos__reparto {
+  padding: var(--space-3);
+  border-radius: var(--radius-control);
+  background: var(--surface-2);
+}
+
+@media (min-width: 640px) {
+  .prestamos__cifras {
+    grid-template-columns: 1.3fr 1fr 1fr;
+    align-items: end;
+  }
+}
+
+/* ---- Cuota fija, terminados y "pagas de más" ---- */
+.prestamos__badge--fija {
+  background: color-mix(in srgb, var(--accent) 18%, transparent);
+  color: var(--accent);
+}
+
+.prestamos__tarjeta--terminada {
+  opacity: 0.85;
+}
+
+.prestamos__terminados {
+  display: flex;
+  flex-direction: column;
+}
+
+.prestamos__terminados > .prestamos__lista {
+  margin-top: var(--space-3);
+}
+
+.prestamos__terminados-resumen {
+  cursor: pointer;
+  font-weight: 600;
+  color: var(--text-secondary);
+  padding: var(--space-2) 0;
+}
+
+.prestamos__demas {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  padding: var(--space-3);
+  border-radius: var(--radius-control);
+  background: var(--surface-2);
+  border: 1px solid var(--text-08);
+}
+
+.prestamos__demas-fila {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--space-2);
+}
+
+.prestamos__demas-fila--destacada {
+  font-weight: 700;
+  color: var(--expense);
+  border-top: 1px solid var(--text-08);
+  padding-top: var(--space-1);
+}

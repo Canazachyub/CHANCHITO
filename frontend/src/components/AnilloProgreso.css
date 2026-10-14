@@ -7,7 +7,7 @@
 }
 
 .anillo-progreso__pista {
-  stroke: var(--text-08);
+  stroke: var(--surface-3);
 }
 
 .anillo-progreso__valor {

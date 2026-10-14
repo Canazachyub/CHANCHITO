@@ -6,7 +6,9 @@ import {
   registrarPagoDeuda,
   responderSolicitud,
   useCategorias,
+  useCuentas,
   useDeudas,
+  useObligaciones,
   useSolicitudes,
   useUsuarios,
   type NuevaDeuda,
@@ -15,8 +17,12 @@ import {
 import Modal from '../components/Modal';
 import Boton from '../components/Boton';
 import CampoMonto from '../components/CampoMonto';
+import Prestamos from './Prestamos';
 import SelectorEspacio from '../components/SelectorEspacio';
 import { diasHasta, formatFechaLarga, formatMoneda } from '../design/format';
+import { PREFIJO_DEUDA_OBLIGACION } from '../data/analisis';
+import ilustracionDeudas from '../assets/deudas.webp';
+import ilustracionSolicitudes from '../assets/solicitudes.webp';
 import '../components/Formulario.css';
 import './Deudas.css';
 
@@ -76,6 +82,9 @@ export default function Deudas({ sesion }: DeudasProps) {
   const deudas = useDeudas();
   const solicitudes = useSolicitudes();
   const categoriasGasto = useCategorias('gasto');
+  const categoriasIngreso = useCategorias('ingreso');
+  const cuentas = useCuentas();
+  const obligaciones = useObligaciones();
   const usuarios = useUsuarios();
   const esPropietario = sesion.usuario.rol_global === 'propietario';
 
@@ -88,6 +97,10 @@ export default function Deudas({ sesion }: DeudasProps) {
   const [montoPago, setMontoPago] = useState('');
   const [errorPago, setErrorPago] = useState<string | undefined>();
   const [guardandoPago, setGuardandoPago] = useState(false);
+  // Registrar el pago también como gasto/ingreso real (ver registrarPagoDeuda en data/api.ts).
+  const [conMovimiento, setConMovimiento] = useState(true);
+  const [categoriaPago, setCategoriaPago] = useState('');
+  const [cuentaPago, setCuentaPago] = useState('');
 
   const [modalSolicitudAbierto, setModalSolicitudAbierto] = useState(false);
   const [formSolicitud, setFormSolicitud] = useState<FormularioSolicitud>(formularioSolicitudVacio());
@@ -103,7 +116,9 @@ export default function Deudas({ sesion }: DeudasProps) {
 
   const listaOrdenada = useMemo(() => {
     if (!deudas) return undefined;
-    return [...deudas].sort((a, b) => {
+    return deudas
+      .filter((d) => !d.id_prestamo) // las cuotas de préstamos se ven dentro de su préstamo
+      .sort((a, b) => {
       if (a.estado === 'pagada' && b.estado !== 'pagada') return 1;
       if (b.estado === 'pagada' && a.estado !== 'pagada') return -1;
       return a.fecha_vencimiento < b.fecha_vencimiento ? -1 : 1;
@@ -124,6 +139,15 @@ export default function Deudas({ sesion }: DeudasProps) {
     setDeudaPago(d);
     setMontoPago(String(d.monto_pendiente));
     setErrorPago(undefined);
+    // Si la deuda la generó una obligación mensual, su categoría y cuenta ya están definidas.
+    const concepto = d.descripcion.startsWith(PREFIJO_DEUDA_OBLIGACION)
+      ? d.descripcion.slice(PREFIJO_DEUDA_OBLIGACION.length).trim()
+      : null;
+    const obligacion = concepto ? (obligaciones ?? []).find((o) => o.concepto === concepto) : undefined;
+    setCategoriaPago(obligacion?.id_categoria ?? '');
+    setCuentaPago(obligacion?.id_cuenta ?? cuentas?.[0]?.id_cuenta ?? '');
+    // Descontar un adelanto del sueldo no mueve plata: no hay ingreso que registrar.
+    setConMovimiento(!(d.tipo === 'me_deben' && d.id_trabajador));
   }
 
   async function confirmarPago() {
@@ -137,9 +161,17 @@ export default function Deudas({ sesion }: DeudasProps) {
       setErrorPago('No puede ser mayor que lo pendiente.');
       return;
     }
+    if (conMovimiento && (!categoriaPago || !cuentaPago)) {
+      setErrorPago('Elige categoría y cuenta, o desmarca "registrar también".');
+      return;
+    }
     setGuardandoPago(true);
     try {
-      await registrarPagoDeuda(deudaPago.id_deuda, monto);
+      await registrarPagoDeuda(
+        deudaPago.id_deuda,
+        monto,
+        conMovimiento ? { id_categoria: categoriaPago, id_cuenta: cuentaPago } : undefined,
+      );
       setDeudaPago(null);
     } finally {
       setGuardandoPago(false);
@@ -244,6 +276,8 @@ export default function Deudas({ sesion }: DeudasProps) {
         <h1 className="u-title-1">Deudas</h1>
       </header>
 
+      <Prestamos sesion={sesion} />
+
       {listaOrdenada === undefined ? (
         <div className="deudas__esqueleto">
           <div className="u-skeleton" style={{ height: 92 }} aria-hidden="true" />
@@ -251,7 +285,7 @@ export default function Deudas({ sesion }: DeudasProps) {
         </div>
       ) : listaOrdenada.length === 0 ? (
         <div className="tarjeta u-estado-vacio">
-          <span className="u-estado-vacio__icono">🤝</span>
+          <img className="u-estado-vacio__ilustracion" src={ilustracionDeudas} alt="" aria-hidden="true" />
           <p className="u-callout">No hay deudas registradas.</p>
           <p className="u-footnote">Toca "Nueva deuda" para llevar el control de lo que debes o te deben.</p>
         </div>
@@ -312,7 +346,10 @@ export default function Deudas({ sesion }: DeudasProps) {
             {solicitudes === undefined ? (
               <div className="u-skeleton" style={{ height: 64 }} aria-hidden="true" />
             ) : pendientesDeResponder.length === 0 ? (
-              <p className="u-footnote">No hay solicitudes esperando respuesta.</p>
+              <div className="u-estado-vacio deudas__solicitudes-vacio">
+                <img className="u-estado-vacio__ilustracion deudas__solicitudes-ilustracion" src={ilustracionSolicitudes} alt="" aria-hidden="true" />
+                <p className="u-footnote">No hay solicitudes esperando respuesta.</p>
+              </div>
             ) : (
               <ul className="deudas__lista-solicitudes">
                 {pendientesDeResponder.map((s) => (
@@ -438,6 +475,34 @@ export default function Deudas({ sesion }: DeudasProps) {
             <Boton variante="primario" bloque onClick={() => setMontoPago(String(deudaPago.monto_pendiente))}>
               Pago total
             </Boton>
+            <label className="form-check">
+              <input type="checkbox" checked={conMovimiento} onChange={(e) => setConMovimiento(e.target.checked)} />
+              <span className="u-subhead">
+                Registrar también como {deudaPago.tipo === 'debo' ? 'gasto' : 'ingreso'}
+              </span>
+            </label>
+            {conMovimiento && (
+              <>
+                <label className="form-campo">
+                  <span className="u-subhead">Categoría</span>
+                  <select className="form-select" value={categoriaPago} onChange={(e) => setCategoriaPago(e.target.value)}>
+                    <option value="" disabled>Elige una categoría</option>
+                    {((deudaPago.tipo === 'debo' ? categoriasGasto : categoriasIngreso) ?? []).map((c) => (
+                      <option key={c.id_categoria} value={c.id_categoria}>{c.icono} {c.nombre}</option>
+                    ))}
+                  </select>
+                </label>
+                <label className="form-campo">
+                  <span className="u-subhead">Cuenta</span>
+                  <select className="form-select" value={cuentaPago} onChange={(e) => setCuentaPago(e.target.value)}>
+                    <option value="" disabled>Elige una cuenta</option>
+                    {(cuentas ?? []).map((c) => (
+                      <option key={c.id_cuenta} value={c.id_cuenta}>{c.icono} {c.nombre}</option>
+                    ))}
+                  </select>
+                </label>
+              </>
+            )}
             <Boton variante="primario" bloque onClick={confirmarPago} disabled={guardandoPago}>
               {guardandoPago ? 'Registrando…' : 'Confirmar pago'}
             </Boton>

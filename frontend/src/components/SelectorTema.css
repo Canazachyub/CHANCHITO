@@ -1,0 +1,51 @@
+/* Selector de apariencia (Sistema · Claro · Oscuro). */
+
+.selector-tema {
+  display: flex;
+  gap: 3px;
+  padding: 3px;
+  background: var(--surface-2);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-control);
+}
+
+.selector-tema__opcion {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  min-height: 38px;
+  padding: 0 var(--space-2);
+  border-radius: calc(var(--radius-control) - 3px);
+  font-size: var(--fs-subhead);
+  font-weight: 600;
+  color: var(--text-secondary);
+  transition: background var(--dur-fast) var(--ease-standard), color var(--dur-fast) var(--ease-standard);
+  -webkit-tap-highlight-color: transparent;
+}
+
+.selector-tema__opcion:hover {
+  color: var(--text);
+}
+
+.selector-tema__opcion--activo,
+.selector-tema__opcion--activo:hover {
+  background: var(--accent);
+  color: var(--on-accent);
+}
+
+/* Botón único (riel de íconos): oculto salvo en la barra lateral colapsada / tablet. */
+.selector-tema-compacto {
+  display: none;
+  align-items: center;
+  justify-content: center;
+  min-height: 36px;
+  border-radius: var(--radius-control);
+  color: var(--text-secondary);
+}
+
+.selector-tema-compacto:hover {
+  background: var(--text-04);
+  color: var(--text);
+}

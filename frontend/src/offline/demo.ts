@@ -23,6 +23,7 @@ import type {
   ObligacionMensual,
   Sesion,
   SolicitudDinero,
+  Trabajador,
   Transaccion,
   Usuario,
 } from '../data/types';
@@ -34,7 +35,37 @@ import type {
 // Subir esta clave es lo que fuerza un re-sembrado en navegadores que ya tenían data
 // de demo anterior: el sembrado se saltea si la clave ya está en `meta`.
 // v3: agrega el vaciado previo, para arreglar las categorías duplicadas de Familia.
-const CLAVE_DEMO = 'demo_sembrado_v3';
+// v4: trabajadores (CONTRACT § 4-quater) con pagos, un adelanto y una planilla programada.
+// v7: categorías financieras de préstamos; además vacía la cola y los conflictos locales.
+const CLAVE_DEMO = 'demo_sembrado_v10';
+const FINANCIERAS = new Set(['Intereses y comisiones bancarias', 'Amortización de préstamos', 'Préstamos recibidos']);
+
+/**
+ * Data real de la empresa en ../datos-locales/telcom.json (carpeta en .gitignore: DNI y sueldos
+ * no viajan al repo). Si existe, Telcom se siembra con los trabajadores, obligaciones y deudas
+ * reales en vez de los inventados. El glob devuelve {} si el archivo no está, sin romper nada.
+ */
+interface DatosLocalesTelcom {
+  trabajadores: Array<Pick<Trabajador, 'nombre' | 'documento' | 'tipo_vinculo' | 'cargo' | 'proyecto' | 'sueldo_base' | 'pension' | 'fecha_ingreso' | 'fecha_fin' | 'notas'>>;
+  obligaciones: Array<{ concepto: string; categoria: string; monto_estimado: number; dia_vencimiento: number; notas: string }>;
+  planilla_programada: { categoria: string; dia_vencimiento: number; notas: string };
+  deudas: Array<{ tipo: Deuda['tipo']; persona: string; monto: number; descripcion: string; vence: string }>;
+  /** El equipo real. Sin contraseñas: en demo no hay login; en producción las crea crearCuentasEquipo(). */
+  usuarios?: Array<{ id: string; usuario: string; nombre: string; email: string; rol: 'propietario' | 'miembro'; documento: string }>;
+  cuentas_telcom?: Array<{ nombre: string; tipo: string; icono: string }>;
+}
+const DATOS_LOCALES = Object.values(
+  import.meta.glob<DatosLocalesTelcom>('../../../datos-locales/telcom.json', { eager: true, import: 'default' }),
+)[0];
+
+/** Gente inventada a propósito: el repo es público y la planilla real no va acá. */
+const TRABAJADORES_DEMO: Array<[string, string, Trabajador['tipo_vinculo'], string, number, string, string]> = [
+  // id, nombre, vínculo, cargo, sueldo, fecha_ingreso, fecha_fin
+  ['TRB_demo0001', 'Rosa Quispe', 'planilla', 'Coordinadora', 3200, '2026-03-01', '2026-12-31'],
+  ['TRB_demo0002', 'Jorge Mamani', 'planilla', 'Técnico de campo', 1800, '2026-05-15', '2026-12-31'],
+  ['TRB_demo0003', 'Lucía Torres', 'planilla', 'Asistente administrativa', 1500, '2026-01-10', ''],
+  ['TRB_demo0004', 'Mario Huamán', 'honorarios', 'Apoyo legal', 1000, '2026-08-20', ''],
+];
 
 const USUARIOS: Array<[string, string, string, 'propietario' | 'miembro']> = [
   ['USR_ana00001', 'ana@ejemplo.com', 'Ana', 'propietario'],
@@ -55,12 +86,15 @@ const CATEGORIAS_FAMILIA_GASTO: Array<[string, string, string]> = [
   ['Educación', '📚', '#BF5AF2'],
   ['Entretenimiento', '🎬', '#FF375F'],
   ['Otros gastos', '📦', '#86868B'],
+  ['Intereses y comisiones bancarias', '🏦', '#FF453A'],
+  ['Amortización de préstamos', '📉', '#8E8E93'],
 ];
 
 const CATEGORIAS_FAMILIA_INGRESO: Array<[string, string, string]> = [
   ['Sueldo', '💼', '#30D158'],
   ['Ingresos extra', '✨', '#66D4CF'],
   ['Otros ingresos', '💰', '#A2845E'],
+  ['Préstamos recibidos', '🏦', '#0A84FF'],
 ];
 
 const GLOSAS_FAMILIA: Record<string, string[]> = {
@@ -105,12 +139,15 @@ const CATEGORIAS_TELCOM_GASTO: Array<[string, string, string, string]> = [
   // grupo 'impuestos'
   ['Impuestos y SUNAT', '🏛️', '#FF453A', 'impuestos'],
   // sin grupo (contrato la marca con '—')
+  ['Intereses y comisiones bancarias', '🏦', '#FF453A', 'financiero'],
+  ['Amortización de préstamos', '📉', '#8E8E93', 'financiero'],
   ['Otros gastos operativos', '📋', '#86868B', ''],
 ];
 
 const CATEGORIAS_TELCOM_INGRESO: Array<[string, string, string, string]> = [
   ['Servicios facturados', '🧾', '#30D158', 'ingresos'],
   ['Otros ingresos', '💰', '#66D4CF', 'ingresos'],
+  ['Préstamos recibidos', '🏦', '#0A84FF', 'financiero'],
 ];
 
 const GLOSAS_TELCOM: Record<string, string[]> = {
@@ -341,7 +378,9 @@ export async function sembrarDemo(): Promise<void> {
 
       const cuantos = espacio.id_espacio === ESP_FAMILIA ? 18 + Math.floor(rnd() * 10) : 24 + Math.floor(rnd() * 14);
       for (let k = 0; k < cuantos; k++) {
-        const cat = catsGasto[Math.floor(rnd() * catsGasto.length)];
+        // Los gastos inventados nunca caen en préstamos: eso solo nace de un cronograma real.
+        const aleatorias = catsGasto.filter((c) => !FINANCIERAS.has(c.nombre));
+        const cat = aleatorias[Math.floor(rnd() * aleatorias.length)];
         const glosas = espacio.glosas[cat.nombre] ?? ['Gasto'];
         const dia = 1 + Math.floor(rnd() * diasDelMes);
         const usuario = usuarios[Math.floor(rnd() * usuarios.length)];
@@ -375,6 +414,59 @@ export async function sembrarDemo(): Promise<void> {
 
   const enDias = (d: number) => fechaISO(new Date(hoy.getFullYear(), hoy.getMonth(), hoy.getDate() + d));
 
+  const trabajadores: Trabajador[] = DATOS_LOCALES
+    ? DATOS_LOCALES.trabajadores.map((t, i) => ({
+        ...t,
+        id_trabajador: `TRB_real${String(i).padStart(4, '0')}`,
+        id_espacio: ESP_TELCOM,
+        id_usuario: '',
+        activo: true,
+        fecha_creacion: marca,
+        fecha_modificacion: marca,
+      }))
+    : TRABAJADORES_DEMO.map(([id, nombre, tipo_vinculo, cargo, sueldo, ingreso, fin]) => ({
+    id_trabajador: id,
+    id_espacio: ESP_TELCOM,
+    nombre,
+    documento: '',
+    tipo_vinculo,
+    cargo,
+    proyecto: 'Contrato demo',
+    sueldo_base: sueldo,
+    pension: tipo_vinculo === 'planilla' ? 'ONP' : '',
+    fecha_ingreso: ingreso,
+    fecha_fin: id === 'TRB_demo0004' ? enDias(25) : fin,
+    id_usuario: '',
+    activo: true,
+    notas: '',
+    fecha_creacion: marca,
+    fecha_modificacion: marca,
+  }));
+
+  // Los gastos de personal de Telcom se reparten entre los trabajadores. Uno del mes en curso
+  // queda sin asignar para que se vea el aviso de "pagos sin trabajador".
+  const personalTelcom = new Set(
+    categorias.filter((c) => c.id_espacio === ESP_TELCOM && c.grupo === 'personal').map((c) => c.id_categoria),
+  );
+  const mesActual = marca.slice(0, 7);
+  let sinAsignarDejado = false;
+  let turno = 0;
+  for (const t of transacciones) {
+    if (!personalTelcom.has(t.id_categoria)) continue;
+    if (DATOS_LOCALES) continue;
+    if (!sinAsignarDejado && t.fecha.startsWith(mesActual)) {
+      sinAsignarDejado = true;
+      continue;
+    }
+    t.id_trabajador = trabajadores[turno++ % trabajadores.length].id_trabajador;
+  }
+  // Con la planilla real no quedan pagos de personal inventados: ni atribuidos a personas reales,
+  // ni sueltos inflando el costo de personal (y CTS/gratificaciones no aplican en REMYPE).
+  if (DATOS_LOCALES) {
+    const sinPersonal = transacciones.filter((t) => !personalTelcom.has(t.id_categoria));
+    transacciones.splice(0, transacciones.length, ...sinPersonal);
+  }
+
   const deudas: Deuda[] = (
     [
       [ESP_FAMILIA, 'DDA_00000001', 'USR_ana00001', 'me_deben', 'Luis', 320, 320, 'Entradas del concierto', 12, 'pendiente'],
@@ -383,6 +475,8 @@ export async function sembrarDemo(): Promise<void> {
       [ESP_FAMILIA, 'DDA_00000004', 'USR_ana00001', 'me_deben', 'Diego', 200, 0, 'Adelanto del alquiler', -20, 'pagada'],
       [ESP_TELCOM, 'DDA_00000005', 'USR_ana00001', 'debo', 'SUNAT', 2100, 2100, 'IGV pendiente de regularización', 6, 'pendiente'],
       [ESP_TELCOM, 'DDA_00000006', 'USR_ana00001', 'me_deben', 'Cliente Los Olivos SAC', 3600, 3600, 'Factura de mantenimiento de julio', 9, 'pendiente'],
+      [ESP_TELCOM, 'DDA_00000007', 'USR_ana00001', 'me_deben', 'Jorge Mamani', 300, 300, 'Adelanto por descontar: pasajes de su familia', 16, 'pendiente'],
+      [ESP_TELCOM, 'DDA_00000008', '', 'debo', 'Sueldo Rosa Quispe', 3200, 3200, 'Obligación mensual: Sueldo Rosa Quispe', 17, 'pendiente'],
     ] as const
   ).map(([espacio, id, usuario, tipo, persona, original, pendiente, desc, dias, estado]) => ({
     id_deuda: id,
@@ -401,6 +495,7 @@ export async function sembrarDemo(): Promise<void> {
     rev: 1,
     origen: 'app' as const,
     eliminado: false,
+    id_trabajador: id === 'DDA_00000007' ? 'TRB_demo0002' : id === 'DDA_00000008' ? 'TRB_demo0001' : '',
     sync_status: 'synced' as const,
   }));
 
@@ -510,6 +605,22 @@ export async function sembrarDemo(): Promise<void> {
       fecha_modificacion: marca,
     },
     {
+      id_obligacion: 'OBL_00000005',
+      id_espacio: ESP_TELCOM,
+      concepto: 'Sueldo Rosa Quispe',
+      id_categoria: catTelcomPorNombre.get('Sueldos y honorarios')?.id_categoria ?? '',
+      id_cuenta: cuentaTelcomBanco,
+      monto_estimado: 3200,
+      dia_vencimiento: 30,
+      ultimo_periodo_generado: periodoActual,
+      activo: true,
+      notas: '',
+      fecha_creacion: marca,
+      eliminado: false,
+      fecha_modificacion: marca,
+      id_trabajador: 'TRB_demo0001',
+    },
+    {
       id_obligacion: 'OBL_00000004',
       id_espacio: ESP_FAMILIA,
       concepto: 'Alquiler de la casa',
@@ -526,8 +637,123 @@ export async function sembrarDemo(): Promise<void> {
     },
   ];
 
+  if (DATOS_LOCALES) {
+    // Lo de Telcom inventado (deudas y obligaciones de ejemplo) se reemplaza por lo real.
+    const soloFamilia = <T extends { id_espacio: string }>(filas: T[]) => filas.filter((f) => f.id_espacio !== ESP_TELCOM);
+    deudas.splice(0, deudas.length, ...soloFamilia(deudas));
+    obligaciones.splice(0, obligaciones.length, ...soloFamilia(obligaciones));
+
+    const plan = DATOS_LOCALES.planilla_programada;
+    const idCat = (nombre: string) => catTelcomPorNombre.get(nombre)?.id_categoria ?? '';
+    const venceEsteMes = (dia: number) => {
+      const ultimo = new Date(hoy.getFullYear(), hoy.getMonth() + 1, 0).getDate();
+      return fechaISO(new Date(hoy.getFullYear(), hoy.getMonth(), Math.min(dia, ultimo)));
+    };
+    let k = 0;
+    const obligacionReal = (o: { concepto: string; categoria: string; monto: number; dia: number; notas: string; id_trabajador?: string }) => {
+      const id = `OBL_real${String(k++).padStart(4, '0')}`;
+      obligaciones.push({
+        id_obligacion: id,
+        id_espacio: ESP_TELCOM,
+        concepto: o.concepto,
+        id_categoria: idCat(o.categoria),
+        id_cuenta: cuentaTelcomBanco,
+        monto_estimado: o.monto,
+        dia_vencimiento: o.dia,
+        ultimo_periodo_generado: periodoActual,
+        activo: true,
+        notas: o.notas,
+        fecha_creacion: marca,
+        eliminado: false,
+        fecha_modificacion: marca,
+        id_trabajador: o.id_trabajador ?? '',
+      });
+      // La deuda de este mes, como la generaría el trigger (backend/24_obligaciones.js).
+      deudas.push(deudaReal('debo', o.concepto, o.monto, `Obligación mensual: ${o.concepto}`, venceEsteMes(o.dia), o.id_trabajador));
+    };
+    const deudaReal = (tipo: Deuda['tipo'], persona: string, monto: number, descripcion: string, vence: string, idTrabajador = ''): Deuda => ({
+      id_deuda: `DDA_real${String(deudas.length).padStart(4, '0')}`,
+      id_espacio: ESP_TELCOM,
+      id_usuario: '',
+      tipo,
+      persona,
+      monto_original: monto,
+      monto_pendiente: monto,
+      descripcion,
+      fecha_creacion: marca,
+      fecha_vencimiento: vence,
+      estado: vence < fechaISO(hoy) ? 'vencida' : 'pendiente',
+      recordatorio: true,
+      notas: '',
+      rev: 1,
+      origen: 'app',
+      eliminado: false,
+      id_trabajador: idTrabajador,
+      sync_status: 'synced',
+    });
+
+    for (const t of trabajadores) {
+      if (!t.sueldo_base) continue; // Sin sueldo confirmado no se programa nada.
+      obligacionReal({
+        concepto: `${t.tipo_vinculo === 'honorarios' ? 'Honorarios' : 'Sueldo'} ${t.nombre}`,
+        categoria: plan.categoria,
+        monto: t.sueldo_base,
+        dia: plan.dia_vencimiento,
+        notas: plan.notas,
+        id_trabajador: t.id_trabajador,
+      });
+    }
+    for (const o of DATOS_LOCALES.obligaciones) {
+      obligacionReal({ concepto: o.concepto, categoria: o.categoria, monto: o.monto_estimado, dia: o.dia_vencimiento, notas: o.notas });
+    }
+    for (const d of DATOS_LOCALES.deudas) deudas.push(deudaReal(d.tipo, d.persona, d.monto, d.descripcion, d.vence));
+  }
+
+  if (DATOS_LOCALES?.usuarios?.length) {
+    // Modo real: el equipo de verdad y nada inventado. Sin movimientos reales cargados todavía,
+    // los gráficos quedan vacíos: es lo que dice el libro, no un relleno que parezca real.
+    const reales: Usuario[] = DATOS_LOCALES.usuarios.map((u) => ({
+      id_usuario: u.id,
+      email: u.email,
+      nombre: u.nombre,
+      foto_perfil: '',
+      google_id: '',
+      telegram_chat_id: '',
+      rol_global: u.rol,
+      moneda_principal: 'PEN',
+      fecha_registro: marca,
+      ultima_sesion: '',
+      activo: true,
+      usuario: u.usuario,
+      tiene_password: true,
+      debe_cambiar_password: false,
+    }));
+    usuarios.splice(0, usuarios.length, ...reales);
+
+    // Cada usuario queda vinculado a su ficha de trabajador por DNI.
+    for (const u of DATOS_LOCALES.usuarios) {
+      const t = trabajadores.find((w) => w.documento === u.documento);
+      if (t) t.id_usuario = u.id;
+    }
+
+    transacciones.splice(0, transacciones.length);
+    solicitudes.splice(0, solicitudes.length);
+    const soloTelcom = <T extends { id_espacio: string }>(filas: T[]) => filas.filter((f) => f.id_espacio === ESP_TELCOM);
+    deudas.splice(0, deudas.length, ...soloTelcom(deudas));
+    obligaciones.splice(0, obligaciones.length, ...soloTelcom(obligaciones));
+
+    for (const c of cuentas) c.saldo_inicial = 0;
+    const nuevas = DATOS_LOCALES.cuentas_telcom ?? [];
+    const telcom = cuentas.filter((c) => c.id_espacio === ESP_TELCOM);
+    nuevas.forEach((n, i) => {
+      if (telcom[i]) Object.assign(telcom[i], { nombre: n.nombre, tipo: n.tipo, icono: n.icono, orden: i });
+      else cuentas.push({ ...telcom[0], id_cuenta: `CTA_tel_real${i}`, nombre: n.nombre, tipo: n.tipo, icono: n.icono, orden: i });
+    });
+    // Las obligaciones reales apuntaban a la cuenta corriente: sigue existiendo con el mismo id.
+  }
+
   const sesion: Sesion = {
-    usuario: usuarios[0], // Ana, propietaria: así se ve también la pestaña Administración.
+    usuario: usuarios[0], // Propietario: así se ve también la pestaña Administración.
     token_sesion: 'demo-sin-backend',
     expira: new Date(Date.now() + 12 * 3600 * 1000).toISOString().slice(0, 19).replace('T', ' '),
   };
@@ -543,6 +769,10 @@ export async function sembrarDemo(): Promise<void> {
       db.deudas,
       db.solicitudes,
       db.obligaciones,
+      db.trabajadores,
+      db.prestamos,
+      db.cola,
+      db.conflictos,
       db.sesion,
       db.meta,
     ],
@@ -561,6 +791,12 @@ export async function sembrarDemo(): Promise<void> {
         db.deudas.clear(),
         db.solicitudes.clear(),
         db.obligaciones.clear(),
+        db.trabajadores.clear(),
+        db.prestamos.clear(),
+        // La demo no tiene backend: lo que quedó encolado de pruebas anteriores nunca se va a
+        // mandar y solo ensucia el contador de pendientes.
+        db.cola.clear(),
+        db.conflictos.clear(),
       ]);
 
       await db.usuarios.bulkPut(usuarios);
@@ -571,6 +807,7 @@ export async function sembrarDemo(): Promise<void> {
       await db.deudas.bulkPut(deudas);
       await db.solicitudes.bulkPut(solicitudes);
       await db.obligaciones.bulkPut(obligaciones);
+      await db.trabajadores.bulkPut(trabajadores);
       await db.sesion.put({ clave: 'actual', valor: sesion });
       await db.meta.put({ clave: CLAVE_ESPACIO_ACTIVO, valor: ESP_FAMILIA });
       await db.meta.put({ clave: CLAVE_DEMO, valor: marca });

@@ -1,0 +1,627 @@
+/* Página: ancho máximo para que las cifras no se esparzan en pantallas grandes. */
+.tablero__pagina {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  width: 100%;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.tablero__barra {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  flex-wrap: wrap;
+}
+
+.tablero__mes {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.tablero__flecha {
+  width: var(--touch-target);
+  height: var(--touch-target);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--radius-pill);
+  color: var(--accent);
+}
+
+.tablero__flecha:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+}
+
+.tablero__mes-actual {
+  min-width: 100px;
+  text-align: center;
+  text-transform: capitalize;
+}
+
+.tablero__descargar {
+  min-height: 36px;
+  padding: 0 var(--space-4);
+  border: 1px solid var(--accent);
+  border-radius: var(--radius-control);
+  color: var(--accent);
+  font-size: var(--fs-small);
+  font-weight: 600;
+}
+
+.tablero__descargar:disabled {
+  opacity: 0.5;
+  cursor: progress;
+}
+
+.tablero__error {
+  color: var(--expense);
+  font-size: var(--fs-small);
+}
+
+.tablero__esqueleto {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+/* ---- La frase que cuenta la historia ---- */
+.tablero__historia {
+  font-size: var(--fs-h2);
+  line-height: 1.4;
+  color: var(--text-2);
+  font-family: var(--font-display);
+}
+
+.tablero__historia strong {
+  color: var(--text);
+  white-space: nowrap;
+}
+
+.tablero__interruptor {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  align-self: flex-start;
+  min-height: var(--touch-target);
+  font-size: var(--fs-small);
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.tablero__interruptor input {
+  width: 18px;
+  height: 18px;
+  accent-color: var(--accent);
+}
+
+/* ---- Tabla (escritorio) ---- */
+.tablero__grid {
+  overflow: auto;
+  border: 1px solid var(--line-strong);
+  border-radius: var(--radius-control);
+  background: var(--surface-1);
+  flex-shrink: 0;
+}
+
+.tablero__tabla {
+  border-collapse: separate;
+  border-spacing: 0;
+  width: 100%;
+  font-size: var(--fs-body);
+  line-height: var(--lh-small);
+}
+
+.tablero__tabla th,
+.tablero__tabla td {
+  padding: 10px 14px;
+  border-bottom: 1px solid var(--line);
+  white-space: nowrap;
+  background: var(--surface-1);
+}
+
+.tablero__tabla thead th {
+  position: sticky;
+  top: 0;
+  z-index: 3;
+  font-size: var(--fs-small);
+  font-weight: 700;
+  color: var(--text-2);
+  background: var(--surface-3);
+  border-bottom: 1px solid var(--line-strong);
+  white-space: normal;
+  vertical-align: bottom;
+}
+
+.tablero__th-num {
+  text-align: right;
+}
+
+.tablero__th-txt {
+  text-align: left;
+}
+
+.tablero__tabla thead th.tablero__col-a {
+  left: 0;
+  z-index: 4;
+  text-align: left;
+  min-width: 220px;
+}
+
+.tablero__tabla td.tablero__col-a {
+  position: sticky;
+  left: 0;
+  z-index: 1;
+  min-width: 220px;
+  white-space: normal;
+  border-right: 1px solid var(--line);
+}
+
+.tablero__nota {
+  display: block;
+  color: var(--text-3);
+  font-size: var(--fs-caption);
+  line-height: var(--lh-caption);
+}
+
+.tablero__celda-num {
+  text-align: right;
+}
+
+.tablero__cero {
+  color: var(--text-3);
+}
+
+.tablero__suave {
+  color: var(--text-2);
+}
+
+.tablero__acc {
+  white-space: nowrap;
+  text-align: right;
+}
+
+/* Enlaces de texto, siempre visibles (también al tacto). */
+.tablero__enlace {
+  display: inline-block;
+  margin-left: var(--space-2);
+  padding: 2px 0;
+  color: var(--accent);
+  font-size: var(--fs-caption);
+  font-weight: 600;
+  text-align: left;
+}
+
+.tablero__enlace:hover {
+  text-decoration: underline;
+}
+
+.tablero__enlace--ver {
+  margin-left: var(--space-3);
+}
+
+/* Valor que se corrige: parece un campo, con su botón Editar a la vista. */
+.tablero__campo {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  min-height: 36px;
+  padding: 4px 6px 4px 10px;
+  border: 1px solid var(--line-strong);
+  border-radius: var(--radius-control);
+  background: var(--surface-2);
+  text-align: right;
+}
+
+.tablero__campo:hover {
+  border-color: var(--accent);
+}
+
+.tablero__campo-lapiz {
+  padding: 2px 8px;
+  border-radius: var(--radius-pill);
+  background: var(--accent-12);
+  color: var(--accent);
+  font-size: var(--fs-caption);
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.tablero__cambio {
+  color: var(--text-3);
+  white-space: nowrap;
+}
+
+.tablero__cambio--bueno {
+  color: var(--income);
+}
+
+.tablero__cambio--malo {
+  color: var(--expense);
+}
+
+/* Destello: un valor cambió porque se corrigió algo (aquí o en otra hoja). */
+@keyframes tablero-destello {
+  0% {
+    background: var(--accent-18);
+    box-shadow: 0 0 0 4px var(--accent-18);
+  }
+  100% {
+    background: transparent;
+    box-shadow: 0 0 0 4px transparent;
+  }
+}
+
+.tablero__flash {
+  border-radius: 6px;
+  animation: tablero-destello 2.2s var(--ease-standard);
+}
+
+.tablero__tabla tr.tablero__fila--resaltada td,
+.tablero__fila--resaltada {
+  animation: tablero-destello 2.2s var(--ease-standard);
+}
+
+/* ---- Tipos de fila ---- */
+.tablero__fila--seccion td {
+  background: var(--surface-2);
+  padding: 6px 14px;
+  color: var(--text-2);
+}
+
+.tablero__fila--subtotal td {
+  font-weight: 700;
+  border-top: 1px solid var(--line-strong);
+}
+
+.tablero__fila--total td {
+  font-weight: 700;
+  border-top: 2px solid var(--line-strong);
+  background-color: var(--surface-1);
+  background-image: linear-gradient(var(--accent-12), var(--accent-12));
+}
+
+.tablero__fila--control td {
+  color: var(--text-2);
+  font-size: var(--fs-small);
+}
+
+.tablero__ok {
+  color: var(--income);
+  font-weight: 700;
+}
+
+.tablero__alerta {
+  color: var(--expense);
+  font-weight: 700;
+}
+
+/* ---- Resumen: cifras grandes y lista ---- */
+.tablero__tiles {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-3);
+}
+
+@media (min-width: 900px) {
+  .tablero__tiles {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}
+
+.tablero__tile {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  padding: var(--space-4);
+  border: 1px solid var(--line-strong);
+  border-radius: var(--radius-card);
+  background: var(--surface-1);
+}
+
+.tablero__tile .tablero__enlace {
+  margin-left: 0;
+}
+
+.tablero__tile-valor {
+  font-size: var(--fs-h3);
+  line-height: var(--lh-h3);
+  white-space: nowrap;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  align-self: flex-start;
+}
+
+@media (min-width: 480px) {
+  .tablero__tile-valor {
+    font-size: var(--fs-h2);
+    line-height: var(--lh-h2);
+  }
+}
+
+@media (min-width: 900px) {
+  .tablero__tile-valor {
+    font-size: var(--fs-h1);
+    line-height: var(--lh-h1);
+  }
+}
+
+.tablero__lista {
+  display: flex;
+  flex-direction: column;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-control);
+  background: var(--surface-1);
+  overflow: hidden;
+}
+
+.tablero__lista-seccion {
+  padding: var(--space-2) var(--space-4);
+  background: var(--surface-2);
+  color: var(--text-2);
+}
+
+.tablero__lista-fila {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-4);
+  padding: var(--space-3) var(--space-4);
+  border-bottom: 1px solid var(--line);
+}
+
+.tablero__lista-fila--total {
+  font-weight: 700;
+  background: var(--accent-12);
+  border-top: 2px solid var(--line-strong);
+}
+
+.tablero__lista-texto {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  min-width: 0;
+}
+
+.tablero__lista-texto .tablero__enlace {
+  margin-left: 0;
+}
+
+.tablero__lista-valor {
+  white-space: nowrap;
+  font-size: var(--fs-h3);
+}
+
+/* ---- Tarjetas (móvil) ---- */
+.tablero__tarjetas {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.tablero__tarjetas-seccion {
+  margin-top: var(--space-3);
+  color: var(--text-2);
+}
+
+.tablero__tarjeta {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  padding: var(--space-3) var(--space-4);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-control);
+  background: var(--surface-1);
+}
+
+.tablero__tarjeta--total {
+  border-color: var(--line-strong);
+  background-color: var(--surface-1);
+  background-image: linear-gradient(var(--accent-12), var(--accent-12));
+  font-weight: 700;
+}
+
+.tablero__tarjeta--subtotal {
+  border-color: var(--line-strong);
+  font-weight: 700;
+}
+
+.tablero__tarjeta-linea {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--space-3);
+}
+
+.tablero__tarjeta-titulo {
+  font-weight: 600;
+}
+
+.tablero__tarjeta-valor {
+  font-size: var(--fs-h3);
+  white-space: nowrap;
+}
+
+.tablero__tarjeta-sub {
+  color: var(--text-3);
+  font-size: var(--fs-small);
+  font-weight: 400;
+}
+
+.tablero__tarjeta-cifras {
+  color: var(--text-2);
+  font-size: var(--fs-small);
+  font-weight: 400;
+  line-height: 1.6;
+}
+
+.tablero__tarjeta-cifras b {
+  color: var(--text);
+  white-space: nowrap;
+}
+
+.tablero__tarjeta-acciones {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.tablero__tarjeta-acciones .tablero__enlace {
+  margin-left: 0;
+}
+
+/* ---- Editor de un valor ---- */
+.tablero__editor {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  padding-bottom: var(--space-4);
+}
+
+.tablero__editor-botones {
+  display: flex;
+  gap: var(--space-3);
+}
+
+/* ---- Panel "¿De dónde sale?" ---- */
+.tablero__ecuacion {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
+  margin: var(--space-3) 0;
+  line-height: 1.2;
+}
+
+.tablero__ec-texto {
+  color: var(--text-2);
+  font-weight: 600;
+  white-space: pre;
+}
+
+.tablero__chip {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
+  padding: 6px 10px;
+  border: 1px solid var(--accent);
+  border-radius: var(--radius-control);
+  background: var(--accent-08);
+  color: var(--text-2);
+  font-size: var(--fs-caption);
+  text-align: left;
+}
+
+.tablero__chip b {
+  color: var(--text);
+  font-size: var(--fs-small);
+}
+
+button.tablero__chip:hover {
+  background: var(--accent-18);
+}
+
+.tablero__chip--resultado {
+  background: var(--accent);
+  border-color: var(--accent);
+}
+
+.tablero__chip--resultado b {
+  color: var(--on-accent);
+}
+
+/* ---- Detalle de movimientos ---- */
+.editor-mov__total {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--space-3);
+  padding: var(--space-2) 0 var(--space-3);
+  border-bottom: 1px solid var(--line-strong);
+  font-weight: 600;
+}
+
+.editor-mov__lista {
+  display: flex;
+  flex-direction: column;
+}
+
+.editor-mov__item {
+  border-bottom: 1px solid var(--line);
+}
+
+.editor-mov__fila {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  width: 100%;
+  min-height: var(--touch-target);
+  padding: var(--space-2) 0;
+  text-align: left;
+}
+
+.editor-mov__fecha {
+  color: var(--text-3);
+  font-size: var(--fs-small);
+}
+
+.editor-mov__texto {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.editor-mov__monto {
+  white-space: nowrap;
+}
+
+.editor-mov__form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  padding: var(--space-2) 0 var(--space-4);
+}
+
+.editor-mov__acciones {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--space-3);
+}
+
+/* ---- Pestañas de hojas ---- */
+.tablero__hojas {
+  position: sticky;
+  bottom: calc(var(--tab-bar-height) + var(--safe-bottom));
+  z-index: 10;
+  display: flex;
+  flex-shrink: 0;
+  overflow-x: auto;
+  background: var(--surface-1);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-control);
+  scrollbar-width: none;
+}
+
+.tablero__hoja {
+  flex: 1 0 auto;
+  padding: 10px var(--space-4);
+  border-top: 3px solid transparent;
+  border-right: 1px solid var(--line);
+  color: var(--text-2);
+  font-size: var(--fs-small);
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+.tablero__hoja--activa {
+  border-top-color: var(--accent);
+  background: var(--surface-3);
+  color: var(--text);
+  font-weight: 700;
+}

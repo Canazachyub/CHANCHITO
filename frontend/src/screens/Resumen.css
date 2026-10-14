@@ -27,113 +27,89 @@
   text-transform: capitalize;
 }
 
-.resumen__categorias-esqueleto {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-3);
+/* G1: 2x2 en móvil, 4 en una fila desde tablet */
+.resumen__kpis {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
 }
 
-.resumen__lista-categorias {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-4);
-  margin-top: var(--space-3);
+/* Bloques de gráficos: 1 columna en móvil, 2 (6+6 de 12) en web */
+.resumen__rejilla {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 12px;
 }
 
-.resumen__fila-categoria {
-  display: flex;
-  align-items: center;
-  gap: var(--space-3);
+@media (min-width: 768px) {
+  .resumen__kpis {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
 }
 
-.resumen__categoria-info {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-}
-
-.resumen__grafico {
-  margin-top: var(--space-3);
-}
-
-.resumen__leyenda-grafico {
-  display: flex;
-  justify-content: center;
-  gap: var(--space-5);
-  margin-top: var(--space-2);
-}
-
-.resumen__leyenda-item {
-  display: inline-flex;
-  align-items: center;
-  gap: var(--space-1);
-  font-size: var(--fs-footnote);
-  line-height: var(--lh-footnote);
-  color: var(--text-secondary);
-}
-
-.resumen__punto {
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  display: inline-block;
-}
-
-.resumen__punto--ingreso {
-  background: var(--income);
-}
-
-.resumen__punto--gasto {
-  background: var(--expense);
+@media (min-width: 1024px) {
+  .resumen__rejilla {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 16px;
+  }
 }
 
 /* ---------------------------------------------------------------------- */
-/* Anillos agrupados (Telcom, ~20 categorías — CONTRACT § 6-bis)           */
+/* Web (≥1024px): rejilla de 12 columnas como el mockup (DESIGN § 8.3).     */
+/* .resumen__kpis y .resumen__rejilla ocupan las 12 columnas de .app-scroll; */
+/* las secciones de ResumenAnalisis son hijas directas y van a 2 columnas.   */
 /* ---------------------------------------------------------------------- */
+@media (min-width: 1024px) {
+  .resumen__selector-mes {
+    justify-content: flex-start;
+    gap: var(--space-3);
+  }
 
-.resumen__grupo {
-  display: flex;
-  flex-direction: column;
-}
+  .resumen__mes-actual {
+    min-width: 140px;
+    font-size: var(--fs-h3);
+  }
 
-.resumen__fila-grupo {
-  width: 100%;
-  text-align: left;
-  -webkit-tap-highlight-color: transparent;
-}
+  .resumen__kpis {
+    gap: var(--space-4);
+  }
 
-.resumen__fila-grupo:active {
-  opacity: 0.7;
-}
+  .resumen__rejilla {
+    grid-template-columns: repeat(12, minmax(0, 1fr));
+    gap: var(--space-4);
+  }
 
-.resumen__chevron {
-  flex-shrink: 0;
-  color: var(--text-secondary);
-  transition: transform var(--dur-fast) var(--ease-standard);
-}
+  /* Fila 1: Saldo acumulado + Ingresos vs. gastos (6 + 6). */
+  .resumen__rejilla > :nth-child(1),
+  .resumen__rejilla > :nth-child(2) {
+    grid-column: span 6;
+  }
 
-.resumen__chevron--abierto {
-  transform: rotate(180deg);
-}
+  /* Fila 2: Diferencia mensual, Gasto por grupo y Obligaciones (5 + 4 + 3). */
+  .resumen__rejilla > :nth-child(3) {
+    grid-column: span 5;
+  }
 
-.resumen__subcategorias {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-3);
-  margin-top: var(--space-3);
-  padding-left: var(--space-6);
-  border-left: 2px solid var(--text-08);
-}
+  .resumen__rejilla > :nth-child(4) {
+    grid-column: span 4;
+  }
 
-.resumen__fila-categoria--sub {
-  gap: var(--space-2);
-}
+  .resumen__rejilla > :nth-child(5) {
+    grid-column: span 3;
+  }
 
-.resumen__icono-chico {
-  font-size: var(--fs-caption);
-}
+  /* Sin obligaciones en el mes: quedan dos bloques, 7 + 5. */
+  .resumen__rejilla > :nth-child(3):nth-last-child(2) {
+    grid-column: span 7;
+  }
 
-.resumen__nombre-sub {
-  color: var(--text);
+  .resumen__rejilla > :nth-child(4):last-child {
+    grid-column: span 5;
+  }
+
+  /* Análisis (Indicadores, Personal, Qué cambió, Cuentas): 2 columnas. */
+  .app-scroll > .analisis {
+    grid-column: span 6;
+    align-self: start;
+  }
 }
